@@ -22,54 +22,27 @@ class FPoint(object):
         """ generated source for method __init___0 """
         set(x, y)
 
-    # 
-    #      * Copy another FPoint object.
-    #      
-    def set(self, fp):
-        """ generated source for method set """
+    # TODO check code on set/add/scale usage (with fp, or constant factor k)
+
+    def set_fp(self, fp):
         self.x = fp.x
         self.y = fp.y
 
-    # 
-    #      * Set both coordinates, specified as doubles.
-    #      
-    def set_0(self, x, y):
-        """ generated source for method set_0 """
+    def set_xy(self, x, y):
         self.x = x
         self.y = y
 
-    # 
-    #      * Add the same value to both coordinates.
-    #      
-    def add(self, k):
-        """ generated source for method add """
+    def add_k(self, k):
         return FPoint(self.x + k, self.y + k)
 
-    # 
-    #      * Add one FPoint to another.  This can be used to
-    #      * add separate offsets to each coordinate.
-    #      
-    def add_0(self, fp):
-        """ generated source for method add_0 """
+    def add_fp(self, fp):
         return FPoint(self.x + fp.x, self.y + fp.y)
 
-    # 
-    #      * Multiply both coordinate by the same value.
-    #      
-    def scale(self, k):
-        """ generated source for method scale """
+    def scale_k(self, k):
         return FPoint(self.x * k, self.y * k)
 
-    # 
-    #      * Multiple each coordinate by different values.
-    #      
-    def scale_0(self, fp):
-        """ generated source for method scale_0 """
+    def scale_fp(self, fp):
         return FPoint(self.x * fp.x, self.y * fp.y)
 
-    # 
-    #      * Returns the coordinates as a string, for printing or display.
-    #      
     def __str__(self):
-        """ generated source for method toString """
-        return str("(" + self.x + ", " + self.y + ")")
+        return f"( {self.x:.2f}, {self.y:.2f})"
