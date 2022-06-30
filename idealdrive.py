@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from fpoint import FPoint
 from position import Position
@@ -23,7 +23,7 @@ contributed by Jing YE, Univeristy of Melbourne, Jan 2001
 """
 
 
-class IdealDrive(object):
+class IdealDrive():
     #  the starting position, for simulations.
     initialPos = Position()
 

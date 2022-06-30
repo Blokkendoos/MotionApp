@@ -1,25 +1,12 @@
-#!/usr/bin/env python
+class FPoint():
+    """
+    FPoint represents a point on the floating-point Cartesian plane
+    (i.e., it is an (x, y) pair, with x and y represented as floats).
+    """
+    x = float()  # The horizontal coordinate
+    y = float()  # The vertical coordinate
 
-""" generated source for module FPoint """
-# 
-#  * FPoint represents a point on the floating-point Cartesian plane
-#  * (i.e., it is an (x, y) pair, with x and y represented as doubles.
-#  *
-#  * @author <a href="mailto:MikeGauland@users.sourceforge.net">Michael
-#  *     Gauland</a>
-#  * @version 1.
-#  
-class FPoint(object):
-    """ generated source for class FPoint """
-    #  The horizontal coordinate. 
-    x = float()
-
-    #  The vertical coordinate. 
-    y = float()
-
-    #  Default constructor; both coordinates set to Java default of 0.0. 
-    def __init___0(self, x=0.0, y=0.0):
-        """ generated source for method __init___0 """
+    def __init___(self, x=0.0, y=0.0):
         set(x, y)
 
     # TODO check code on set/add/scale usage (with fp, or constant factor k)
