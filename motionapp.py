@@ -1,6 +1,8 @@
 from __future__ import print_function
 from math import floor, cos, sin
 
+import tkinter as tk
+import motionapp_gui as Gui
 
 class MotionApplet(JApplet, ChangeListener, DrawInterface):
     """
@@ -556,3 +558,16 @@ class MotionApplet(JApplet, ChangeListener, DrawInterface):
             fpd[2] = self.theWheels.RightWheelLoc(self.trueReckonPos[iSegment])
             theFloatCanvas.drawPolygon(fpd, Color.blue)
             iSegment += 1
+def main(*args):
+    global root
+    root = tk.Tk()
+    root.protocol('WM_DELETE_WINDOW', root.destroy)
+    # Creates a toplevel widget
+    global _top1, _w1
+    _top1 = root
+    _w1 = Gui.Toplevel1(_top1)
+    root.mainloop()
+
+
+if __name__ == '__main__':
+    Gui.start_up()
