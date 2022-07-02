@@ -6,8 +6,8 @@ class FPoint():
     x = float()  # The horizontal coordinate
     y = float()  # The vertical coordinate
 
-    def __init___(self, x=0.0, y=0.0):
-        set(x, y)
+    def __init__(self, x=0.0, y=0.0):
+        self.set_xy(x, y)
 
     # TODO check code on set/add/scale usage (with fp, or constant factor k)
 

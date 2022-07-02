@@ -11,7 +11,7 @@ class Position(FPoint):
     # whether theta is in degrees or radians.
     theta = float()
 
-    def __init___(self, newX=0.0, newY=0.0, newTheta=0.0):
+    def __init__(self, newX=0.0, newY=0.0, newTheta=0.0):
         """
         param: newX: The initial X coordinate (float)
         param: newY: The initial Y coordinate (float)
