@@ -87,7 +87,7 @@ class IdealDrive():
         """
         result = str()
         result = "Start at: (" + self.initialPos.x + ", " + self.initialPos.y + "); facing " +\
-                  (self.initialPos.theta * 180 / math.PI) +\
+                  (self.initialPos.theta * 180 / math.pi) +\
                   "\nBody: " + self.bodyWidth + "; Vels: " +\
                   self.velocityLeft + ", " + self.velocityRight
         return result
@@ -110,7 +110,7 @@ class IdealDrive():
         is facing right, 90 deg; is straight up, etc.).
         """
         #  Convert from degrees to radians
-        self.initialPos.theta = degrees * math.PI / 180.0
+        self.initialPos.theta = degrees * math.pi / 180.0
         #  Store the sin and cos of the angle, for use in later calculations
         self.sinTheta0 = math.sin(self.initialPos.theta)
         self.cosTheta0 = math.cos(self.initialPos.theta)
@@ -347,8 +347,8 @@ class IdealDrive():
         return the location of the left wheel.
         """
         result = FPoint()
-        result.x = p.x + self.bodyWidth / 2 * math.cos(p.theta + math.PI / 2)
-        result.y = p.y + self.bodyWidth / 2 * math.sin(p.theta + math.PI / 2)
+        result.x = p.x + self.bodyWidth / 2 * math.cos(p.theta + math.pi / 2)
+        result.y = p.y + self.bodyWidth / 2 * math.sin(p.theta + math.pi / 2)
         return result
 
     def RightWheelLoc(self, p):
@@ -357,8 +357,8 @@ class IdealDrive():
         return the location of the right wheel.
         """
         result = FPoint()
-        result.x = p.x + self.bodyWidth / 2 * math.cos(p.theta - math.PI / 2)
-        result.y = p.y + self.bodyWidth / 2 * math.sin(p.theta - math.PI / 2)
+        result.x = p.x + self.bodyWidth / 2 * math.cos(p.theta - math.pi / 2)
+        result.y = p.y + self.bodyWidth / 2 * math.sin(p.theta - math.pi / 2)
         return result
 
     def NoseLoc(self, p):
