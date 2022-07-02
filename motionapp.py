@@ -2,7 +2,7 @@ from __future__ import print_function
 from math import floor, cos, sin
 
 import tkinter as tk
-import motionapp_gui as Gui
+import motionapp_gui
 from pubsub import pub
 
 from idealdrive import IdealDrive
@@ -84,10 +84,10 @@ class MotionApp():
     # Temporary variable.
     nSegment = int()
 
-    def init(self):
+    def __init__(self):
         """ calculate and display the position data. """
         self.compute_position_data()
-        self.paneTracks.installPaintFunc(self)
+        # self.paneTracks.installPaintFunc(self)
 
         pub.subscribe(self.position_changed, 'position_changed')
         pub.subscribe(self.velocity_changed, 'velocity_changed')
@@ -136,14 +136,14 @@ class MotionApp():
         pos = self.theWheels.positionAt(self.simulationTime)
         vLeft = self.theWheels.getVelocityLeft(self.simulationTime)
         vRight = self.theWheels.getVelocityRight(self.simulationTime)
-        self.panePosition.setComputedValues(pos.x, pos.y, pos.theta,
-                                            self.deadReckonPos[self.nSegment].x,
-                                            self.deadReckonPos[self.nSegment].y,
-                                            self.deadReckonPos[self.nSegment].theta,
-                                            self.deadReckonMeanPos[self.nSegment].x,
-                                            self.deadReckonMeanPos[self.nSegment].y,
-                                            self.deadReckonMeanPos[self.nSegment].theta,
-                                            vLeft, vRight)
+        # self.panePosition.setComputedValues(pos.x, pos.y, pos.theta,
+        #                                     self.deadReckonPos[self.nSegment].x,
+        #                                     self.deadReckonPos[self.nSegment].y,
+        #                                     self.deadReckonPos[self.nSegment].theta,
+        #                                     self.deadReckonMeanPos[self.nSegment].x,
+        #                                     self.deadReckonMeanPos[self.nSegment].y,
+        #                                     self.deadReckonMeanPos[self.nSegment].theta,
+        #                                     vLeft, vRight)
 
     def compute_position_data(self):
         pass
@@ -264,17 +264,6 @@ class MotionApp():
             iSegment += 1
         '''
 
-
-def main(*args):
-    global root
-    root = tk.Tk()
-    root.protocol('WM_DELETE_WINDOW', root.destroy)
-    # Creates a toplevel widget
-    global _top1, _w1
-    _top1 = root
-    _w1 = MotionApp(_top1)
-    root.mainloop()
-
-
 if __name__ == '__main__':
-    Gui.start_up()
+    motionapp = MotionApp()
+    motionapp_gui.start_up()
