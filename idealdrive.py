@@ -322,7 +322,7 @@ class IdealDrive():
         location = FPoint()
         location.x = finalX
         location.y = finalY
-        location = location.add(self.initialPos)
+        location = location.add_fp(self.initialPos)
         return Position(location.x, location.y, theta)
 
     def DeadReckonAt(self, t):
