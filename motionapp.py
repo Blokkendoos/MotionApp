@@ -3,10 +3,15 @@ from math import floor, cos, sin
 
 import tkinter as tk
 import motionapp_gui as Gui
+from pubsub import pub
 
-class MotionApplet(JApplet, ChangeListener, DrawInterface):
+from idealdrive import IdealDrive
+from position import Position
+
+
+class MotionApp():
     """
-    This is to top-level class for the app.  It demonstrates the errors
+    This is the top-level class for the app.  It demonstrates the errors
     that occur with "dead-reckoning" navigation.
 
     Original version by
@@ -19,82 +24,13 @@ class MotionApplet(JApplet, ChangeListener, DrawInterface):
     @author <a href="mailto:tdbrown@uiuc.edu">Tom Brown</a>
     @version 1.3
     """
-    # These variables are used for the controls in the applet.
-    # Adjustment for the initial position "X" coordinate.
-    controlPositionX = JFBSlider("X:", -10, 10, 200, 1)
+    # The duration of the simulation
+    simulationTime = 2.0  # seconds
 
-    # Adjustment for the initial position "Y" coordinate.
-    controlPositionY = JFBSlider("Y:", -10, 10, 200, 1)
+    # The time between dead-reckoning calculations
+    deadReckoningInterval = 0.01  # seconds
 
-    # Adjustment for the initial direction.
-    controlPositionTheta = JFBSlider("Theta", -180, 180, 144, 1, "\u00b0")
-
-    # Adjustment for the velocity of the left wheel.
-    controlVelocityLeft = JFBSlider("L: ", -5.00, 5.00, 100, 2)
-
-    # Adjustment for the velocity of the right wheel.
-    controlVelocityRight = JFBSlider("R: ", -5.00, 5.00, 100, 2)
-
-    # Adjustment for the acceleration of the left wheel.
-    controlAccelerationLeft = JFBSlider("L: ", -1.00, 1.00, 200, 2)
-
-    # Adjustment for the acceleration of the right wheel.
-    controlAccelerationRight = JFBSlider("R: ", -1.00, 1.00, 200, 2)
-
-    # Adjustment for the width of the robot's body.
-    controlBodyWidth = JFBSlider("Width: ", 0.1, 2.5, 120, 2)
-
-    # Adjustment for the duration of the simulation.
-    controlDuration = JFBSlider("Duration: ", 0.0, 30.0, 300, 1)
-
-    # Adjustment for the interval between dead-reckonings.
-    controlDeadReckoningInterval = JFBSlider("Interval:", 0.0, 1.0, 100, 2)
-
-    # END of controls variables.
-
-    # These variables will contain the display elements.
-    # Display group for the control tabs.
-    paneControls = JTabbedPane()
-
-    # Control group for the robot body settings.
-    controlsRobot = JPanel()
-
-    # Control group for timing settings.
-    controlsTiming = JPanel()
-
-    # Control group for the speed settings.
-    controlsSpeed = JPanel()
-
-    # The canvas for displaying the robot's tracks.
-    paneTracks = FloatCanvas()
-
-    # Display group for the position information (text).
-    panePosition = None
-
-    # END of display elements variables.
-
-    # These variables contain spacings used in the display.
-    # Constant padding vertical padding of 3 pixels.
-    vpad3 = Dimension(1, 3)
-
-    # Constant padding vertical padding of 5 pixels.
-    vpad5 = Dimension(1, 5)
-
-    # Constant padding horizontal padding of 5 pixels.
-    hpad5 = Dimension(5, 1)
-
-    # END of display spacings variables.
-
-    # These variables are used for storing robot attributes used
-    # in the simulation, and for storing the results of the simulation
-    # (e.g., true position of each wheel).
-    # The duration of the simulation, in seconds.
-    simulationTime = 2.0
-
-    # The time between dead-reckoning calculations, in seconds.
-    deadReckoningInterval = 0.01
-
-    # This is the object used to simulate the robot's movements.
+    # This is the object used to simulate the robot's movements
     theWheels = IdealDrive()
 
     # The number of steps used for displaying the true path and
@@ -109,15 +45,12 @@ class MotionApplet(JApplet, ChangeListener, DrawInterface):
     # to exhibit places where it makes sharp bends rather than
     # smooth changes in direction.   These bends are artifact of
     # the graphics routines, not errors in the position calculations.
-    #
     maxNumSteps = 250
     numSteps = 100
     maxDRSegments = 100
 
-    #
     # A temporary variable used to determine the time between each
     # simulated leg used for drawing the true path.
-    #
     stepSize = float()
 
     # Temporary storage for the robot's position.
@@ -125,326 +58,97 @@ class MotionApplet(JApplet, ChangeListener, DrawInterface):
 
     # This variable is used to store the  path of the center of the robot,
     # which is then used to derive the position of the wheels.
-    #
-    plotData = [None] * maxNumSteps + 1
+    plotData = [None] * (maxNumSteps + 1)
 
     # Storage for the path of the center of the robot, which will
     # be used for drawing the track.
-    #
-    centerPoints = [None] * maxNumSteps + 1
+    centerPoints = [None] * (maxNumSteps + 1)
 
     # Storage for the path of the left wheel of the robot, which will
     # be used for drawing the track.
-    #
-    leftPoints = [None] * maxNumSteps + 1
+    leftPoints = [None] * (maxNumSteps + 1)
 
     # Storage for the path of the right wheel of the robot, which will
     # be used for drawing the track.
-    #
-    rightPoints = [None] * maxNumSteps + 1
+    rightPoints = [None] * (maxNumSteps + 1)
 
     # Storage for the dead-reckoned path of the robot.
-    deadReckonPos = [None] * maxDRSegments + 1
+    deadReckonPos = [None] * (maxDRSegments + 1)
 
     # Storage for the dead-reckoned path of the robot using the mean of theta.
-    deadReckonMeanPos = [None] * maxDRSegments + 1
+    deadReckonMeanPos = [None] * (maxDRSegments + 1)
 
     # Storage for the true path of the robot.
-    trueReckonPos = [None] * maxDRSegments + 1
+    trueReckonPos = [None] * (maxDRSegments + 1)
 
     # Temporary variable.
     nSegment = int()
 
-    # END of simulation variables.
-
     def init(self):
-        """
-        Set up controls for Robot tab, which includes:
-            Initial Position
-                Slider for X coordinate
-                Slider for Y coordinate
-                Slider for direction (theta)
-            Body Settings
-                Body Width
-        """
-        # Basic set up for the tab:
-        self.controlsRobot.setLayout(BoxLayout(self.controlsRobot, BoxLayout.Y_AXIS))
-        self.controlsRobot.setBorder(LineBorder(Color.magenta, 1))
-        self.controlsRobot.add(Box.createRigidArea(self.vpad5))
-
-        # Create a panel for the Initial Position controls:
-        theSliderPanel = JPanel()
-        theSliderPanel.setLayout(BoxLayout(theSliderPanel, BoxLayout.Y_AXIS))
-        theSliderPanel.setBorder(TitledBorder("Initial Position"))
-        #
-        # Add tick marks for the initial position sliders, and
-        # add this object as a "ChangeListener" to each.
-        #
-        self.controlPositionX.addTicks(10, 5)
-        self.controlPositionX.addChangeListener(self)
-        self.controlPositionY.addTicks(10, 5)
-        self.controlPositionY.addChangeListener(self)
-        self.controlPositionTheta.addTicks(10, 5)
-        self.controlPositionTheta.addChangeListener(self)
-        #
-        # Add the sliders to the panel, with some spacing
-        # between them, then add the panel to the robot panel.
-        # Insert some spacing as well.
-        #
-        theSliderPanel.add(Box.createRigidArea(self.vpad3))
-        theSliderPanel.add(self.controlPositionX)
-        theSliderPanel.add(Box.createRigidArea(self.vpad3))
-        theSliderPanel.add(self.controlPositionY)
-        theSliderPanel.add(Box.createRigidArea(self.vpad3))
-        theSliderPanel.add(self.controlPositionTheta)
-        self.controlsRobot.add(theSliderPanel)
-        self.controlsRobot.add(Box.createRigidArea(self.vpad3))
-        #
-        # Create a panel for the Body Settings controls
-        # (of which "Width" is currently the only one).  Add
-        # tick marks to the Body Width control, add this object
-        # as a change listener, and add the new panel to the
-        # robot tab panel.
-        #
-        theBodyPanel = JPanel()
-        theBodyPanel.setLayout(BoxLayout(theBodyPanel, BoxLayout.Y_AXIS))
-        theBodyPanel.setBorder(TitledBorder("Body Settings"))
-        self.controlBodyWidth.addTicks(5, 5)
-        self.controlBodyWidth.addChangeListener(self)
-        theBodyPanel.add(self.controlBodyWidth)
-        self.controlsRobot.add(theBodyPanel)
-        self.controlsRobot.add(Box.createRigidArea(self.vpad3))
-        #
-        # Set up the controls for Speed tab, which include
-        # sliders for the velocity and acceleration of each
-        # wheel.
-        #
-        # Basic setup for the panel:
-        self.controlsSpeed.setLayout(BoxLayout(self.controlsSpeed, BoxLayout.Y_AXIS))
-        self.controlsSpeed.setBorder(LineBorder(Color.red, 1))
-        self.controlsSpeed.add(Box.createRigidArea(self.vpad5))
-        #
-        # Create a panel for the velocity sliders.  Add the
-        # controls to this panel, then add the panel to the Speed
-        # tab panel.
-        #
-        theVelocityPanel = JPanel()
-        theVelocityPanel.setLayout(BoxLayout(theVelocityPanel, BoxLayout.Y_AXIS))
-        theVelocityPanel.setBorder(TitledBorder("Velocities"))
-        self.controlVelocityLeft.addTicks(10, 5)
-        self.controlVelocityLeft.addChangeListener(self)
-        self.controlVelocityRight.addTicks(10, 5)
-        self.controlVelocityRight.addChangeListener(self)
-        #
-        # Create a panel for the Acceleration sliders.  Add the
-        # controls to this panel, then add the panel to the Speed
-        # tab panel.
-        #
-        theAccelerationPanel = JPanel()
-        theAccelerationPanel.setLayout(BoxLayout(theAccelerationPanel, BoxLayout.Y_AXIS))
-        theAccelerationPanel.setBorder(TitledBorder("Accelerations"))
-        self.controlAccelerationLeft.addTicks(10, 5)
-        self.controlAccelerationLeft.addChangeListener(self)
-        self.controlAccelerationRight.addTicks(10, 5)
-        self.controlAccelerationRight.addChangeListener(self)
-        theVelocityPanel.add(Box.createRigidArea(self.vpad3))
-        theVelocityPanel.add(self.controlVelocityRight)
-        theVelocityPanel.add(Box.createRigidArea(self.vpad3))
-        theVelocityPanel.add(self.controlVelocityLeft)
-        theVelocityPanel.add(Box.createRigidArea(self.vpad3))
-        theAccelerationPanel.add(Box.createRigidArea(self.vpad3))
-        theAccelerationPanel.add(self.controlAccelerationRight)
-        theAccelerationPanel.add(Box.createRigidArea(self.vpad3))
-        theAccelerationPanel.add(self.controlAccelerationLeft)
-        theAccelerationPanel.add(Box.createRigidArea(self.vpad3))
-        self.controlsSpeed.add(theVelocityPanel)
-        self.controlsSpeed.add(theAccelerationPanel)
-        #
-        # Set up the controls for the Timing tab, which
-        # consist of two panels:  one for the simlulation
-        # duration slider, and one for the dead-reckoning
-        # interval slider.
-        #
-        # Basic panel setup:
-        self.controlsTiming.setLayout(BoxLayout(self.controlsTiming, BoxLayout.Y_AXIS))
-        self.controlsTiming.setBorder(LineBorder(Color.cyan, 1))
-        self.controlsTiming.add(Box.createRigidArea(self.vpad5))
-        #
-        # Create a panel for the Simulation section.  Add the
-        # duration slider control, and add the panel to the
-        # Timing tab panel.
-        #
-        theTimePanel = JPanel()
-        theTimePanel.setLayout(BoxLayout(theTimePanel, BoxLayout.Y_AXIS))
-        theTimePanel.setBorder(TitledBorder("Simulation"))
-        self.controlDuration.addTicks(10, 5)
-        self.controlDuration.addChangeListener(self)
-        theTimePanel.add(self.controlDuration)
-        self.controlsTiming.add(theTimePanel)
-        #
-        # Create a panel for the Dead-Reckoning section.  Add the
-        # interval slider control, and add the panel to the
-        # Timing tab panel.
-        #
-        theDeadReckoningPanel = JPanel()
-        theDeadReckoningPanel.setLayout(BoxLayout(theDeadReckoningPanel, BoxLayout.Y_AXIS))
-        theDeadReckoningPanel.setBorder(TitledBorder("Dead Reckoning"))
-        theDeadReckoningPanel.add(self.controlDeadReckoningInterval)
-        self.controlDeadReckoningInterval.addTicks(10, 5)
-        self.controlDeadReckoningInterval.addChangeListener(self)
-        self.controlsTiming.add(theDeadReckoningPanel)
-        #
-        # Add the tab panels to the Controls panel.
-        #
-        self.paneControls.addTab("Robot", self.controlsRobot)
-        self.paneControls.addTab("Speed", self.controlsSpeed)
-        self.paneControls.addTab("Timing", self.controlsTiming)
-        #
-        # Create a panel for displaying the robot's path:
-        #
-        canvasPanel = JPanel(GridLayout())
-        canvasPanel.add(self.paneTracks)
-        canvasPanel.setBorder(LineBorder(Color.blue, 1))
-        # Create & setup the new panel:
-        self.panePosition = PositionPanel()
-        #
-        # Set up the layout for the main window.  Set up the
-        # layout for and insert the canvas panl, controls pane,
-        # and position feedback pane.
-        #
-        gbl = GridBagLayout()
-        gbc = GridBagConstraints()
-        getContentPane().setLayout(gbl)
-        # Add the canvas pane to the main window
-        gbc.anchor = gbc.NORTHWEST
-        gbc.fill = gbc.BOTH
-        gbc.gridx = 0
-        gbc.gridy = 0
-        gbc.gridheight = 2
-        gbc.gridwidth = 1
-        gbc.weightx = 1
-        gbc.weighty = 1
-        gbl.setConstraints(canvasPanel, gbc)
-        getContentPane().add(canvasPanel)
-        # Add the controls pane to the main window
-        gbc.fill = gbc.HORIZONTAL
-        gbc.gridx = 1
-        gbc.gridy = 0
-        gbc.gridheight = 1
-        gbc.gridwidth = 1
-        gbc.weightx = 0
-        gbc.weighty = 0
-        gbl.setConstraints(self.paneControls, gbc)
-        getContentPane().add(self.paneControls)
-        # Add the position feedback pane to the main window
-        gbc.fill = gbc.HORIZONTAL
-        gbc.gridx = 1
-        gbc.gridy = 1
-        gbc.gridheight = 1
-        gbc.gridwidth = 1
-        gbc.weightx = 0
-        gbc.weighty = 0
-        gbl.setConstraints(self.panePosition, gbc)
-        getContentPane().add(self.panePosition)
-        #
-        # Set all the controls to known initial values
-        #
-        self.controlPositionX.setValue(0)
-        self.controlPositionY.setValue(0)
-        self.controlPositionTheta.setValue(90)
-        self.controlVelocityLeft.setValue(2.5)
-        self.controlVelocityRight.setValue(2.4)
-        self.controlAccelerationLeft.setValue(0.0)
-        self.controlAccelerationRight.setValue(0.0)
-        self.controlBodyWidth.setValue(1.0)
-        self.controlDuration.setValue(self.simulationTime)
-        self.controlDeadReckoningInterval.setValue(0.1)
-        self.controlDeadReckoningInterval.setValue(0.5)
-        #
-        # Now that the controls have been set, calculate and
-        # display the position data.
-        #
-        computePositionData()
-        #
-        # Finally, install this object as a paint function for the
-        # canvas pane.
-        #
+        """ calculate and display the position data. """
+        self.compute_position_data()
         self.paneTracks.installPaintFunc(self)
 
-    def stateChanged(self, e):
-        """
-        Handle "ChangeEvents", which occur when a slider changes
-        value.  Use the "isEventSource" functions for each
-        'JFBSlider' object to determine which control generated the
-        event.  For most events, we just get the new value, and pass
-        it to the appropriate function to set the corresponding
-        control.
-        """
-        if self.controlPositionX.isEventSource(e):
-            self.theWheels.setX0(self.controlPositionX.getValue())
-        elif self.controlPositionY.isEventSource(e):
-            self.theWheels.setY0(self.controlPositionY.getValue())
-        elif self.controlPositionTheta.isEventSource(e):
-            self.theWheels.setTheta0(self.controlPositionTheta.getValue())
-        elif self.controlVelocityLeft.isEventSource(e):
-            self.theWheels.setVelocityLeft(self.controlVelocityLeft.getValue())
-        elif self.controlVelocityRight.isEventSource(e):
-            self.theWheels.setVelocityRight(self.controlVelocityRight.getValue())
-        elif self.controlAccelerationLeft.isEventSource(e):
-            self.theWheels.setAccelerationLeft(self.controlAccelerationLeft.getValue())
-        elif self.controlAccelerationRight.isEventSource(e):
-            self.theWheels.setAccelerationRight(self.controlAccelerationRight.getValue())
-        elif self.controlBodyWidth.isEventSource(e):
-            self.theWheels.setBodyWidth(self.controlBodyWidth.getValue())
-        elif self.controlDuration.isEventSource(e):
-            self.simulationTime = self.controlDuration.getValue()
-        elif self.controlDeadReckoningInterval.isEventSource(e):
-            t = self.controlDeadReckoningInterval.getValue()
-            #
-            # Since a dead-reckoning interval of 0 is not
-            # possible, set it to 0.1 instead.  I did this
-            # instead of setting the minimum limit of the control
-            # to 0.1, because it gives the control a nice, even
-            # midpoint label.
-            #
-            if t == 0:
-                t = 0.1
-                self.controlDeadReckoningInterval.setValue(t)
-            self.deadReckoningInterval = t
-        else:
-            print(e.__str__())
-        #
-        # Whatever the event, update the position feedback
-        # readouts, and redraw the paths.
-        #
-        computePositionData()
-        updatePositionValues()
-        self.paneTracks.repaint()
+        pub.subscribe('position_changed', self.position_changed)
+        pub.subscribe('velocity_changed', self.velocity_changed)
+        pub.subscribe('acceleration_changed', self.acceleration_changed)
+        pub.subscribe('body_width_changed', self.body_width_changed)
+        pub.subscribe('simulation_changed', self.simulation_changed)
 
-    def paint(self, g):
-        """
-        Paint the applet&mdash;redraw the scales and the paths.
+    def position_changed(self, value):
+        x, y, theta = value
+        self.theWheels.setX0(x)
+        self.theWheels.setY0(y)
+        self.theWheels.setTheta0(theta)
+        self.update_simulation()
 
-        param: g: The graphics context in which to draw.
-        """
-        # Draw a Rectangle around the applet's display area.
-        g.drawRect(0, 0, getSize().width - 1, getSize().height - 1)
-        # Redraw all the contents of the applet window.
-        paintComponents(g)
+    def velocity_changed(self, value):
+        v_left, v_right = value
+        self.theWheels.setVelocityLeft(v_left)
+        self.theWheels.setVelocityRight(v_right)
+        self.update_simulation()
 
-    def updatePositionValues(self):
+    def acceleration_changed(self, value):
+        a_left, a_right = value
+        self.theWheels.setAccelerationLeft(a_left)
+        self.theWheels.setAccelerationRight(a_right)
+        self.update_simulation()
+
+    def body_width_changed(self, value):
+        self.theWheels.setBodyWidth(value)
+        self.update_simulation()
+
+    def simulation_changed(self, value):
+        duration, interval = value
+        self.simulationTime = duration
+        self.deadReckoningInterval = interval
+        self.update_simulation()
+
+    def update_simulation(self):
+        self.compute_position_data()
+        self.update_position_values()
+        pub.sendMessage('draw', value='Hallo')
+
+    def update_position_values(self):
         """
         Update the true and dead-reckoned fields in the position feedback pane.
         """
-        if self.panePosition is None:
-            return
-        # do nothing
         pos = self.theWheels.positionAt(self.simulationTime)
         vLeft = self.theWheels.getVelocityLeft(self.simulationTime)
         vRight = self.theWheels.getVelocityRight(self.simulationTime)
-        self.panePosition.setComputedValues(pos.x, pos.y, pos.theta, self.deadReckonPos[self.nSegment].x, self.deadReckonPos[self.nSegment].y, self.deadReckonPos[self.nSegment].theta, self.deadReckonMeanPos[self.nSegment].x, self.deadReckonMeanPos[self.nSegment].y, self.deadReckonMeanPos[self.nSegment].theta, vLeft, vRight)
+        self.panePosition.setComputedValues(pos.x, pos.y, pos.theta,
+                                            self.deadReckonPos[self.nSegment].x,
+                                            self.deadReckonPos[self.nSegment].y,
+                                            self.deadReckonPos[self.nSegment].theta,
+                                            self.deadReckonMeanPos[self.nSegment].x,
+                                            self.deadReckonMeanPos[self.nSegment].y,
+                                            self.deadReckonMeanPos[self.nSegment].theta,
+                                            vLeft, vRight)
 
-    def computePositionData(self):
+    def compute_position_data(self):
+        pass
+
+        '''
         self.numSteps = self.theWheels.getSimpsonIntervals(self.simulationTime)
         if self.numSteps < 30:
             self.numSteps = 30
@@ -496,9 +200,9 @@ class MotionApplet(JApplet, ChangeListener, DrawInterface):
             self.trueReckonPos[iSegment] = self.theWheels.positionAt(trueTime)
             iSegment += 1
 
-    def drawFunc(self, theFloatCanvas):
+    def draw_func(self, theFloatCanvas):
         i = int()
-        shadow = Color(232, 232, 232)
+        shadow = tk.Color(232, 232, 232)
         fpd = [None] * 3
         xMin = self.plotData[0].x
         xMax = xMin
@@ -558,6 +262,9 @@ class MotionApplet(JApplet, ChangeListener, DrawInterface):
             fpd[2] = self.theWheels.RightWheelLoc(self.trueReckonPos[iSegment])
             theFloatCanvas.drawPolygon(fpd, Color.blue)
             iSegment += 1
+        '''
+
+
 def main(*args):
     global root
     root = tk.Tk()
@@ -565,7 +272,7 @@ def main(*args):
     # Creates a toplevel widget
     global _top1, _w1
     _top1 = root
-    _w1 = Gui.Toplevel1(_top1)
+    _w1 = MotionApp(_top1)
     root.mainloop()
 
 
