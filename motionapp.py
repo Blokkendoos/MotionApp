@@ -89,11 +89,11 @@ class MotionApp():
         self.compute_position_data()
         self.paneTracks.installPaintFunc(self)
 
-        pub.subscribe('position_changed', self.position_changed)
-        pub.subscribe('velocity_changed', self.velocity_changed)
-        pub.subscribe('acceleration_changed', self.acceleration_changed)
-        pub.subscribe('body_width_changed', self.body_width_changed)
-        pub.subscribe('simulation_changed', self.simulation_changed)
+        pub.subscribe(self.position_changed, 'position_changed')
+        pub.subscribe(self.velocity_changed, 'velocity_changed')
+        pub.subscribe(self.acceleration_changed, 'acceleration_changed')
+        pub.subscribe(self.body_width_changed, 'body_width_changed')
+        pub.subscribe(self.simulation_changed, 'simulation_changed')
 
     def position_changed(self, value):
         x, y, theta = value
