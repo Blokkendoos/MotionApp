@@ -38,7 +38,8 @@ def initial_values():
     _w1.dead_reckoning_interval.set(0.1)
     _w1.dead_reckoning_interval.set(0.5)
 
-    pub.subscribe(draw, 'draw')
+    draw_canvas('...')
+    pub.subscribe(draw_canvas, 'draw')
 
 # Gui callback-function definitions
 
@@ -47,19 +48,19 @@ def original_position_changed(*args):
     y = _w1.y_pos_org.get()
     theta = _w1.theta_org.get()
     value = (x, y, theta)
-    pub.sendMessage('original_position_changed', value=value)
-
-def acceleration_changed(*args):
-    left = _w1.acceleration_left.get()
-    right = _w1.acceleration_right.get()
-    value = (left, right)
-    pub.sendMessage('acceleration_changed', value=value)
+    pub.sendMessage('position_changed', value=value)
 
 def velocity_changed(*args):
     left = _w1.velocity_left.get()
     right = _w1.velocity_right.get()
     value = (left, right)
     pub.sendMessage('velocity_changed', value=value)
+
+def acceleration_changed(*args):
+    left = _w1.acceleration_left.get()
+    right = _w1.acceleration_right.get()
+    value = (left, right)
+    pub.sendMessage('acceleration_changed', value=value)
 
 def body_width_changed(value):
     pub.sendMessage('width_changed', value=value)
@@ -70,10 +71,7 @@ def simulation_changed(value):
     value = (duration, interval)
     pub.sendMessage('simulation_changed', value=value)
 
-def interval_changed(value):
-    pub.sendMessage('interval_changed', value=value)
-
-def draw(value):
+def draw_canvas(value):
     text = _w1.Canvas1.create_text(10, 10, text=value, font='Helvetica 15')
     _w1.Canvas1.itemconfigure(text, state=tk.DISABLED, anchor=tk.NW)
 
