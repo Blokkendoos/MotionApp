@@ -130,24 +130,20 @@ class MotionApp():
         pub.sendMessage('draw', value='Hallo')
 
     def update_position_values(self):
-        """
-        Update the true and dead-reckoned fields in the position feedback pane.
-        """
         pos = self.theWheels.positionAt(self.simulationTime)
-        vLeft = self.theWheels.getVelocityLeft(self.simulationTime)
-        vRight = self.theWheels.getVelocityRight(self.simulationTime)
-        # self.panePosition.setComputedValues(pos.x, pos.y, pos.theta,
-        #                                     self.deadReckonPos[self.nSegment].x,
-        #                                     self.deadReckonPos[self.nSegment].y,
-        #                                     self.deadReckonPos[self.nSegment].theta,
-        #                                     self.deadReckonMeanPos[self.nSegment].x,
-        #                                     self.deadReckonMeanPos[self.nSegment].y,
-        #                                     self.deadReckonMeanPos[self.nSegment].theta,
-        #                                     vLeft, vRight)
+        v_left = self.theWheels.getVelocityLeft(self.simulationTime)
+        v_right = self.theWheels.getVelocityRight(self.simulationTime)
+        value = (pos.x, pos.y, pos.theta,
+                 self.deadReckonPos[self.nSegment].x,
+                 self.deadReckonPos[self.nSegment].y,
+                 self.deadReckonPos[self.nSegment].theta,
+                 self.deadReckonMeanPos[self.nSegment].x,
+                 self.deadReckonMeanPos[self.nSegment].y,
+                 self.deadReckonMeanPos[self.nSegment].theta,
+                 v_left, v_right)
+        pub.sendMessage('set_computed_values', value=value)
 
     def compute_position_data(self):
-        pass
-
         '''
         self.numSteps = self.theWheels.getSimpsonIntervals(self.simulationTime)
         if self.numSteps < 30:

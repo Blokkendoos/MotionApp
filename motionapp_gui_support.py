@@ -6,13 +6,10 @@
 #    Jul 02, 2022 12:38:45 AM CEST  platform: Darwin
 #    Jul 02, 2022 08:16:36 AM CEST  platform: Darwin
 
-import sys
 import tkinter as tk
-import tkinter.ttk as ttk
-from tkinter.constants import *
+from pubsub import pub
 
 import motionapp_gui
-from pubsub import pub
 
 def main(*args):
     '''Main entry point for the application.'''
@@ -40,6 +37,7 @@ def initial_values():
 
     draw_canvas('...')
     pub.subscribe(draw_canvas, 'draw')
+    pub.subscribe(set_computed_values, 'set_computed_values')
 
 # Gui callback-function definitions
 
@@ -74,6 +72,32 @@ def simulation_changed(value):
 def draw_canvas(value):
     text = _w1.Canvas1.create_text(10, 10, text=value, font='Helvetica 15')
     _w1.Canvas1.itemconfigure(text, state=tk.DISABLED, anchor=tk.NW)
+
+def format_err_value(a, b=None):
+    if b is None:
+        err_str = ""
+    else:
+        err = b - a
+        err_str = f" ({err:.2f})"
+    return f"{a:.2f}{err_str}"
+
+def set_computed_values(value):
+    x, y, theta, x_dr, y_dr, theta_dr, x_drm, y_drm, theta_drm, v_left, v_right = value
+
+    _w1.x_actual.set(format_err_value(x))
+    _w1.y_actual.set(format_err_value(y))
+    _w1.theta_actual.set(format_err_value(theta))
+
+    _w1.x_dr.set(format_err_value(x_dr, x))
+    _w1.y_dr.set(format_err_value(y_dr, y))
+    _w1.theta_dr.set(format_err_value(theta_dr, theta))
+
+    _w1.x_drm.set(format_err_value(x_drm, x))
+    _w1.y_drm.set(format_err_value(y_drm, x))
+    _w1.theta_drm.set(format_err_value(theta_drm, x))
+
+    _w1.v_final_left.set(format_err_value(v_left))
+    _w1.v_final_right.set(format_err_value(v_right))
 
 if __name__ == '__main__':
     motionapp_gui.start_up()
