@@ -5,17 +5,20 @@
 #  in conjunction with Tcl version 8.6
 #    Jul 02, 2022 12:38:45 AM CEST  platform: Darwin
 #    Jul 02, 2022 08:16:36 AM CEST  platform: Darwin
+#    Jul 04, 2022 01:57:20 PM CEST  platform: Darwin
 
 import tkinter as tk
 from pubsub import pub
 
 import motionapp_gui
+from floatcanvas import FloatCanvas
 
 def main(*args):
     '''Main entry point for the application.'''
     global root
     root = tk.Tk()
-    root.protocol('WM_DELETE_WINDOW', root.destroy)
+    root.protocol('WM_DELETE_WINDOW', quit_click)
+    root.bind('<Control-q>', quit_click)
     global _top1, _w1
     _top1 = root
     _w1 = motionapp_gui.Toplevel1(_top1)
@@ -35,9 +38,10 @@ def initial_values():
     _w1.dead_reckoning_interval.set(0.1)
     _w1.dead_reckoning_interval.set(0.5)
 
-    draw_canvas('...')
-    pub.subscribe(draw_canvas, 'draw')
     pub.subscribe(set_computed_values, 'set_computed_values')
+
+def quit_click(event=None):
+    root.destroy()
 
 # Gui callback-function definitions
 
@@ -69,10 +73,6 @@ def simulation_changed(value):
     value = (duration, interval)
     pub.sendMessage('simulation_changed', value=value)
 
-def draw_canvas(value):
-    text = _w1.Canvas1.create_text(10, 10, text=value, font='Helvetica 15')
-    _w1.Canvas1.itemconfigure(text, state=tk.DISABLED, anchor=tk.NW)
-
 def format_err_value(a, b=None):
     if b is None:
         err_str = ""
@@ -98,6 +98,8 @@ def set_computed_values(value):
 
     _w1.v_final_left.set(format_err_value(v_left))
     _w1.v_final_right.set(format_err_value(v_right))
+
+Custom = FloatCanvas  # To be updated by user with name of custom widget.
 
 if __name__ == '__main__':
     motionapp_gui.start_up()
