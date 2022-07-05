@@ -85,12 +85,10 @@ class IdealDrive():
         To facilitate debugging, this function generates a string representing
         the settings of the robot.
         """
-        result = str()
-        result = "Start at: (" + self.initialPos.x + ", " + self.initialPos.y + "); facing " +\
-                  (self.initialPos.theta * 180 / math.pi) +\
-                  "\nBody: " + self.bodyWidth + "; Vels: " +\
-                  self.velocityLeft + ", " + self.velocityRight
-        return result
+        return f"Start at: ({self.initialPos.x},{self.initialPos.y}); facing " +\
+               f"{math.degrees(self.initialPos.theta)}\n" +\
+               f"Body: {self.bodyWidth} Vels: " +\
+               f"{self.velocityLeft}, {self.velocityRight}"
 
     # TODO make all getters/setters properties instead
 
@@ -103,14 +101,14 @@ class IdealDrive():
     def setY0(self, y0):
         self.initialPos.y = y0
 
-    def setTheta0(self, degrees):
+    def setTheta0(self, theta):
         """
         Set the initial facing angle of the robot.  The angle is expressed
         in degrees, measured counterclockwise from East (i.e., 0 deg;
         is facing right, 90 deg; is straight up, etc.).
         """
         #  Convert from degrees to radians
-        self.initialPos.theta = degrees * math.pi / 180.0
+        self.initialPos.theta = math.radians(theta)
         #  Store the sin and cos of the angle, for use in later calculations
         self.sinTheta0 = math.sin(self.initialPos.theta)
         self.cosTheta0 = math.cos(self.initialPos.theta)
