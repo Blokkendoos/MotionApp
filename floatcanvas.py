@@ -69,8 +69,8 @@ class FloatCanvas(tk.Canvas):
         pub.subscribe(self.draw_scales, 'draw_scales')
 
     def resize(self, event):
-        self.width = event.width - self.master_margin
-        self.height = event.height - self.master_margin
+        self.width = event.width - self.master_offset
+        self.height = event.height - self.master_offset
 
     def set_limits(self, value):
         """
