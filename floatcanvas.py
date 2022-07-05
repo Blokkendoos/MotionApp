@@ -147,8 +147,7 @@ class FloatCanvas(tk.Canvas):
         # If the label is at or near the top of the window, force
         # it down so that it will be visible.
         labelLimit = self.fontHeight + 1
-        if labelLoc < labelLimit:
-            labelLoc = labelLimit
+        labelLoc = max(labelLimit, labelLoc)  # floor
         # Draw the tic mark, and the label string.
         self.create_line(self.leftMargin - self.ticLength,
                          ticLoc,
@@ -170,8 +169,7 @@ class FloatCanvas(tk.Canvas):
         # If the label is at or near the right of the window, force
         # it left so that it will be visible.
         labelLimit = self.width - self.rightMargin - self.labelFont.measure(label_str) - 3
-        if labelLoc > labelLimit:
-            labelLoc = labelLimit
+        labelLoc = min(labelLimit, labelLoc)  # ceiling
         # Draw the tic mark, and draw the label string.
         self.create_line(ticLoc,
                          self.height - self.bottomMargin,

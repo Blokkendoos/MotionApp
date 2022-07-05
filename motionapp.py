@@ -145,10 +145,8 @@ class MotionApp():
 
     def compute_position_data(self):
         self.numSteps = self.theWheels.getSimpsonIntervals_0(self.simulationTime)
-        if self.numSteps < 30:
-            self.numSteps = 30
-        elif self.numSteps > self.maxNumSteps:
-            self.numSteps = self.maxNumSteps
+        self.numSteps = max(self.numSteps, 30)  # floor
+        self.numSteps = min(self.numSteps, self.maxNumSteps)  # ceiling
         stepSize = self.simulationTime / self.numSteps
 
         for i in range(1, self.numSteps + 1):

@@ -83,7 +83,7 @@ def format_err_value(a, b=None, angle=False):
     else:
         err = b - a
         err_str = f" ({err:.2f}{degree_sign})"
-    a_str = f"{a:.2f}{degree_sign}" 
+    a_str = f"{a:.2f}{degree_sign}"
     return f"{a_str}{err_str}"
 
 def set_computed_values(value):
@@ -104,12 +104,8 @@ def set_computed_values(value):
     _w1.v_final_left.set(format_err_value(v_left))
     _w1.v_final_right.set(format_err_value(v_right))
 
+
 Custom = FloatCanvas  # To be updated by user with name of custom widget.
 
 if __name__ == '__main__':
     motionapp_gui.start_up()
-
-
-
-
-

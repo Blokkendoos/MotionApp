@@ -74,19 +74,17 @@ class IdealDrive():
         ix.setAccelerationRight(0.70)
         ix.setAccelerationLeft(0.89)
         ix.setBodyWidth(0.1)
-        i = 120
-        while i < 130:
+        for i in range(120, 130):
             n = ix.getSimpsonIntervals_0(i / 10.0)
-            print("time, n intervals): ", (i / 10.0), ",  ", n)
-            i += 1
+            print(f"time: {(i / 10.0)}, intervals: {n}")
 
     def __str__(self):
         """
         To facilitate debugging, this function generates a string representing
         the settings of the robot.
         """
-        return f"Start at: ({self.initialPos.x},{self.initialPos.y}); facing " +\
-               f"{math.degrees(self.initialPos.theta)}\n" +\
+        return f"Start at: ({self.initialPos.x}, {self.initialPos.y}); facing " +\
+               f"{math.degrees(self.initialPos.theta)}\u00b0 \n" +\
                f"Body: {self.bodyWidth} Vels: " +\
                f"{self.velocityLeft}, {self.velocityRight}"
 
@@ -298,8 +296,7 @@ class IdealDrive():
         finalY += (A * start + B) * (math.sin(C * start * start + D * start + theta0))
 
         # 4*f(x1) + 2*f(x2) + ... + 4*f(xn-1)
-        i = 1
-        while i < simpsonIntervals:
+        for i in range(1, simpsonIntervals):
             start += deltaT
             if (i % 2) == 1:
                 finalX += 4 * (A * start + B) * (math.cos(C * start * start + D * start + theta0))
@@ -307,8 +304,6 @@ class IdealDrive():
             else:
                 finalX += 2 * (A * start + B) * (math.cos(C * start * start + D * start + theta0))
                 finalY += 2 * (A * start + B) * (math.sin(C * start * start + D * start + theta0))
-            i += 1
-
         # f(xn)
         finalX += (A * end + B) * (math.cos(C * end * end + D * end + theta0))
         finalY += (A * end + B) * (math.sin(C * end * end + D * end + theta0))
