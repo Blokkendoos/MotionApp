@@ -1,4 +1,4 @@
-from fpoint import FPoint
+from point import FPoint
 
 
 class Position(FPoint):

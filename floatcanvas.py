@@ -1,11 +1,8 @@
 import tkinter as tk
 from tkinter.font import Font
 from pubsub import pub
-from collections import namedtuple
 
-from fpoint import FPoint
-
-Point = namedtuple('Point', ['x', 'y'])
+from point import Point, FPoint
 
 
 class FloatCanvas(tk.Canvas):

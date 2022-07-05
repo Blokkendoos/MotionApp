@@ -1,3 +1,9 @@
+from collections import namedtuple
+
+
+Point = namedtuple('Point', ['x', 'y'])
+
+
 class FPoint():
     """
     FPoint represents a point on the floating-point Cartesian plane

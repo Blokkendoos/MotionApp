@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from fpoint import FPoint
+from point import FPoint
 from position import Position
 import math
 
