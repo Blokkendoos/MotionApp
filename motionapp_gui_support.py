@@ -104,8 +104,11 @@ def set_computed_values(value):
     _w1.v_final_left.set(format_err_value(v_left))
     _w1.v_final_right.set(format_err_value(v_right))
 
-
 Custom = FloatCanvas  # To be updated by user with name of custom widget.
 
 if __name__ == '__main__':
     motionapp_gui.start_up()
+
+
+
+
