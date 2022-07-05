@@ -6,10 +6,7 @@ from pubsub import pub
 
 from idealdrive import IdealDrive
 from position import Position
-
-
-def rgb2hex(rgb):
-    return "#%02x%02x%02x" % rgb
+from point import FPoint
 
 
 class MotionApp():
@@ -59,28 +56,28 @@ class MotionApp():
 
     # This variable is used to store the  path of the center of the robot,
     # which is then used to derive the position of the wheels.
-    plotData = []
+    plotData = [Position()] * (maxNumSteps + 1)
 
     # Storage for the path of the center of the robot, which will
     # be used for drawing the track.
-    centerPoints = []
+    centerPoints = [FPoint()] * (maxNumSteps + 1)
 
     # Storage for the path of the left wheel of the robot, which will
     # be used for drawing the track.
-    leftPoints = []
+    leftPoints = [FPoint()] * (maxNumSteps + 1)
 
     # Storage for the path of the right wheel of the robot, which will
     # be used for drawing the track.
-    rightPoints = []
+    rightPoints = [FPoint()] * (maxNumSteps + 1)
 
     # Storage for the dead-reckoned path of the robot.
-    deadReckonPos = []
+    deadReckonPos = [Position()] * (maxNumSteps + 1)
 
     # Storage for the dead-reckoned path of the robot using the mean of theta.
-    deadReckonMeanPos = []
+    deadReckonMeanPos = [Position()] * (maxNumSteps + 1)
 
     # Storage for the true path of the robot.
-    trueReckonPos = []
+    trueReckonPos = [Position()] * (maxNumSteps + 1)
 
     # Temporary variable.
     nSegment = int()
@@ -88,7 +85,6 @@ class MotionApp():
     def __init__(self):
         """ calculate and display the position data. """
         self.compute_position_data()
-        # self.paneTracks.installPaintFunc(self)
 
         pub.subscribe(self.position_changed, 'position_changed')
         pub.subscribe(self.velocity_changed, 'velocity_changed')
@@ -152,10 +148,10 @@ class MotionApp():
         stepSize = self.simulationTime / self.numSteps
         for i in range(self.numSteps + 1):
             pos = self.theWheels.positionAt(i * stepSize)
-            self.plotData.append(pos)
-            self.centerPoints.append(pos)
-            self.leftPoints.append(self.theWheels.LeftWheelLoc(pos))
-            self.rightPoints.append(self.theWheels.RightWheelLoc(pos))
+            self.plotData[i] = pos
+            self.centerPoints[i] = pos
+            self.leftPoints[i] = self.theWheels.LeftWheelLoc(pos)
+            self.rightPoints[i] = self.theWheels.RightWheelLoc(pos)
 
         # Compute the dead-reckoned position
         self.nSegment = int(floor(self.simulationTime / self.deadReckoningInterval))
@@ -174,9 +170,9 @@ class MotionApp():
             self.nSegment = self.maxDRSegments
             deltaT = self.simulationTime / self.maxDRSegments
 
-        self.deadReckonPos.append(self.theWheels.positionAt(0))
-        self.deadReckonMeanPos.append(self.deadReckonPos[0])
-        self.trueReckonPos.append(self.deadReckonPos[0])
+        self.deadReckonPos[0] = self.theWheels.positionAt(0)
+        self.deadReckonMeanPos[0] = self.deadReckonPos[0]
+        self.trueReckonPos[0] = self.deadReckonPos[0]
         trueTime = 0
         vLeft1 = self.theWheels.getVelocityLeft(0.0)
         vRight1 = self.theWheels.getVelocityRight(0.0)
@@ -204,15 +200,15 @@ class MotionApp():
             wTrack = self.theWheels.getBodyWidth()
             theta = self.deadReckonPos[iSegment - 1].theta + (sRight - sLeft) / wTrack
             theta_mean = (theta + self.deadReckonPos[iSegment - 1].theta) / 2
-            self.deadReckonPos.append(
+            self.deadReckonPos[iSegment] =\
                 Position(self.deadReckonPos[iSegment - 1].x + sMean * cos(theta),
                          self.deadReckonPos[iSegment - 1].y + sMean * sin(theta),
-                         theta))
-            self.deadReckonMeanPos.append(
+                         theta)
+            self.deadReckonMeanPos[iSegment] =\
                 Position(self.deadReckonMeanPos[iSegment - 1].x + sMean * cos(theta_mean),
                          self.deadReckonMeanPos[iSegment - 1].y + sMean * sin(theta_mean),
-                         theta))
-            self.trueReckonPos.append(self.theWheels.positionAt(trueTime))
+                         theta)
+            self.trueReckonPos[iSegment] = self.theWheels.positionAt(trueTime)
 
     def draw_func(self):
         pub.sendMessage('draw_scales')
@@ -222,7 +218,7 @@ class MotionApp():
         xMax = xMin
         yMin = self.plotData[0].y
         yMax = yMin
-        for i in range(1, self.numSteps + 1):
+        for i in range(self.numSteps + 1):
             xMin = min(self.plotData[i].x, xMin)
             xMax = max(self.plotData[i].x, xMax)
             yMin = min(self.plotData[i].y, yMin)
@@ -281,13 +277,10 @@ class MotionApp():
         # theFloatCanvas.drawPolyline(self.centerPoints, self.numSteps + 1)
         # theFloatCanvas.drawPolyline(self.leftPoints, self.numSteps + 1, 'green')
         # theFloatCanvas.drawPolyline(self.rightPoints, self.numSteps + 1, 'red')
-        print(f"#centerPoints:{len(self.centerPoints)}")
         msg = (self.centerPoints, 'blue')
         pub.sendMessage('draw_polygon', value=msg)
-        print(f"#leftPoints:{len(self.leftPoints)}")
         msg = (self.leftPoints, 'green')
         pub.sendMessage('draw_polygon', value=msg)
-        print(f"#rightPoints:{len(self.rightPoints)}")
         msg = (self.rightPoints, 'red')
         pub.sendMessage('draw_polygon', value=msg)
 
