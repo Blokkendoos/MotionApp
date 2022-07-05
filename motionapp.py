@@ -52,6 +52,7 @@ class MotionApp():
     # to exhibit places where it makes sharp bends rather than
     # smooth changes in direction.   These bends are artifact of
     # the graphics routines, not errors in the position calculations.
+    minNumSteps = 30
     maxNumSteps = 250
     numSteps = 100
     maxDRSegments = 100
@@ -144,23 +145,32 @@ class MotionApp():
         pub.sendMessage('set_computed_values', value=value)
 
     def compute_position_data(self):
+        # Compute the true position
         self.numSteps = self.theWheels.getSimpsonIntervals_0(self.simulationTime)
-        self.numSteps = max(self.numSteps, 30)  # floor
+        self.numSteps = max(self.numSteps, self.minNumSteps)  # floor
         self.numSteps = min(self.numSteps, self.maxNumSteps)  # ceiling
         stepSize = self.simulationTime / self.numSteps
-
-        for i in range(1, self.numSteps + 1):
+        for i in range(self.numSteps + 1):
             pos = self.theWheels.positionAt(i * stepSize)
             self.plotData.append(pos)
             self.centerPoints.append(pos)
             self.leftPoints.append(self.theWheels.LeftWheelLoc(pos))
             self.rightPoints.append(self.theWheels.RightWheelLoc(pos))
 
+        # Compute the dead-reckoned position
         self.nSegment = int(floor(self.simulationTime / self.deadReckoningInterval))
         deltaT = self.deadReckoningInterval
         if self.simulationTime - self.nSegment * deltaT > 0.01:
+            # The simulation time does not come out to an even
+            # multiple of deadReckoningIntervals
             self.nSegment += 1
         if self.nSegment > self.maxDRSegments:
+            # the dead-reckoning interval results in too many segments
+            # (more than that for which we wish to allocate memory),
+            # so we need to make some adjustments.  Unfortunately,
+            # the user will not see the results of the dead-reckoning
+            # that he requested, but at this point it is using so fine
+            # an interval that it doesn't matter anymore.
             self.nSegment = self.maxDRSegments
             deltaT = self.simulationTime / self.maxDRSegments
 
@@ -168,20 +178,26 @@ class MotionApp():
         self.deadReckonMeanPos.append(self.deadReckonPos[0])
         self.trueReckonPos.append(self.deadReckonPos[0])
         trueTime = 0
-        vLeft0 = float()
-        vLeft1 = float()
-        vRight0 = float()
-        vRight1 = float()
         vLeft1 = self.theWheels.getVelocityLeft(0.0)
         vRight1 = self.theWheels.getVelocityRight(0.0)
         for iSegment in range(1, self.nSegment + 1):
             if iSegment == self.nSegment:
+                # we are on the last segment.  recall the simulation time
+                # isn't necessarily an even multiple of the dead-reckoning
+                # interval (both values are arbitrary user inputs), so this
+                # last segment could be a little shorter than all the previous
+                # ones.    we recompute it just in case.
                 deltaT = self.simulationTime - (iSegment - 1) * deltaT
             trueTime += deltaT
             vLeft0 = vLeft1
             vRight0 = vRight1
             vLeft1 = self.theWheels.getVelocityLeft(trueTime)
             vRight1 = self.theWheels.getVelocityRight(trueTime)
+            # Dead-reckon a new position:
+            # sLeft and sRight are the displacements of the wheels (may be <0)
+            # for the next segment, theta is the new orientation (at the end
+            # of the segment).  This usage follows the results that are
+            # obtained with the standard dead-reckoning approach.
             sLeft = deltaT * (vLeft0 + vLeft1) / 2.0
             sRight = deltaT * (vRight0 + vRight1) / 2.0
             sMean = (sRight + sLeft) / 2
@@ -207,14 +223,10 @@ class MotionApp():
         yMin = self.plotData[0].y
         yMax = yMin
         for i in range(1, self.numSteps + 1):
-            if self.plotData[i].x < xMin:
-                xMin = self.plotData[i].x
-            elif self.plotData[i].x > xMax:
-                xMax = self.plotData[i].x
-            if self.plotData[i].y < yMin:
-                yMin = self.plotData[i].y
-            elif self.plotData[i].y > yMax:
-                yMax = self.plotData[i].y
+            xMin = min(self.plotData[i].x, xMin)
+            xMax = max(self.plotData[i].x, xMax)
+            yMin = min(self.plotData[i].y, yMin)
+            yMax = max(self.plotData[i].y, yMax)
         bodyWidth = self.theWheels.getBodyWidth()
         xMin -= bodyWidth
         xMax += bodyWidth
