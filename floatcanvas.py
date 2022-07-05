@@ -27,11 +27,11 @@ class FloatCanvas(tk.Canvas):
 
     # Space between the bottom of the plot area, and the bottom of the
     # graphics context.  This must leave room for the X-axis labels.
-    bottomMargin = 20
+    bottomMargin = 50
 
     # Space between the left edge of the plot area, and the left edge of
     # the graphics context.  This must leave room for the Y-axis labels.
-    leftMargin = 30
+    leftMargin = 50
 
     # Space between the right edge of the plot area, and the right edge of
     # the graphics context.
@@ -49,8 +49,12 @@ class FloatCanvas(tk.Canvas):
         super().__init__(master, *args, **kwargs)
         self.master = master
         master.update()  # mainloop is not started yet
-        self.width = master.winfo_width()
-        self.height = master.winfo_height()
+        # Derive my size from the master (Frame).
+        # Reckon with the master border and the
+        # offset of this Canvas within the master.
+        self.master_offset = 10
+        self.width = master.winfo_width() - self.master_offset
+        self.height = master.winfo_height() - self.master_offset
         self.configure(background=self.defaultBackground)
         master.bind('<Configure>', self.resize)
 
@@ -65,8 +69,8 @@ class FloatCanvas(tk.Canvas):
         pub.subscribe(self.draw_scales, 'draw_scales')
 
     def resize(self, event):
-        self.width = event.width
-        self.height = event.height
+        self.width = event.width - self.master_margin
+        self.height = event.height - self.master_margin
 
     def set_limits(self, value):
         """
@@ -94,11 +98,12 @@ class FloatCanvas(tk.Canvas):
         # For each axis, we want to represent a range of [Min, Max], over
         # the allotted number of pixels.  Note that the number of pixels
         # is determined by the top and bottom (or left and right) margins,
-        # plus the "magic number" 2, which allows for the plot area border.
+        # plus the plot area border width.
+        border_width = 2
         yScale =\
-            (self.height - (self.bottomMargin + self.topMargin + 2)) / (self.yMax - self.yMin)
+            (self.height - (self.bottomMargin + self.topMargin + border_width)) / (self.yMax - self.yMin)
         xScale =\
-            (self.width - (self.leftMargin + self.rightMargin + 2)) / (self.xMax - self.xMin)
+            (self.width - (self.leftMargin + self.rightMargin + border_width)) / (self.xMax - self.xMin)
         self.scaleFactor = min(xScale, yScale)
 
     def scalePoint(self, fp):
@@ -140,14 +145,14 @@ class FloatCanvas(tk.Canvas):
         # Get the pixel coordinate of the point on the Y axis
         ticLoc = self.scalePoint(FPoint(0, value)).y
         # Generate a label string from the floating point value.
-        label_str = f"{value:.2f}"
+        label_str = f"{value:.1f}"
         # The label is located lower than the tic mark, by half the
         # height of the string.
         labelLoc = ticLoc + self.fontHeight / 2 + 1
         # If the label is at or near the top of the window, force
         # it down so that it will be visible.
         labelLimit = self.fontHeight + 1
-        labelLoc = max(labelLimit, labelLoc)  # floor
+        labelLoc = max(labelLimit, labelLoc)
         # Draw the tic mark, and the label string.
         self.create_line(self.leftMargin - self.ticLength,
                          ticLoc,
@@ -162,15 +167,15 @@ class FloatCanvas(tk.Canvas):
         # Get the pixel coordinate of the point on the X axis
         ticLoc = self.scalePoint(FPoint(value, 0)).x
         # Generate a label string from the floating point value.
-        label_str = f"{value:.2f}"
+        label_str = f"{value:.1f}"
         # The label starts to the left of the tic mark, so it will be
         # centered on the tic.
         labelLoc = ticLoc - self.labelFont.measure(label_str) / 2
         # If the label is at or near the right of the window, force
         # it left so that it will be visible.
         labelLimit = self.width - self.rightMargin - self.labelFont.measure(label_str) - 3
-        labelLoc = min(labelLimit, labelLoc)  # ceiling
-        # Draw the tic mark, and draw the label string.
+        labelLoc = min(labelLimit, labelLoc)
+        # Draw the tic mark, and the label string.
         self.create_line(ticLoc,
                          self.height - self.bottomMargin,
                          ticLoc,
@@ -182,14 +187,18 @@ class FloatCanvas(tk.Canvas):
 
     def draw_scales(self):
         """ Draw the X and Y axes, and label them. """
+        self.delete('all')  # clear the canvas
+
+        # TODO cleanup, no rect needed (as the master frame already has a border)
+
         # Along with the axes, we draw a line across the top and right
         # edges of the plot area.  It's not really necessary, but it
         # looks good, and is easy to do.
         color = self.defaultScaleColor
         self.create_rectangle(self.leftMargin,
                               self.topMargin,
-                              self.width - self.leftMargin - self.rightMargin - 1,
-                              self.height - self.topMargin - self.bottomMargin - 1,
+                              self.width - self.rightMargin - 1,
+                              self.height - self.bottomMargin - 1,
                               outline=color)
         # Draw the labels for the min and max points to be plotted.
         self.drawYLabel(self.yMin)
