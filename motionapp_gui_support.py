@@ -73,28 +73,33 @@ def simulation_changed(value):
     value = (duration, interval)
     pub.sendMessage('simulation_changed', value=value)
 
-def format_err_value(a, b=None):
+def format_err_value(a, b=None, angle=False):
+    if angle is True:
+        degree_sign = '\u00b0'
+    else:
+        degree_sign = ''
     if b is None:
-        err_str = ""
+        err_str = ''
     else:
         err = b - a
-        err_str = f" ({err:.2f})"
-    return f"{a:.2f}{err_str}"
+        err_str = f" ({err:.2f}{degree_sign})"
+    a_str = f"{a:.2f}{degree_sign}" 
+    return f"{a_str}{err_str}"
 
 def set_computed_values(value):
     x, y, theta, x_dr, y_dr, theta_dr, x_drm, y_drm, theta_drm, v_left, v_right = value
 
     _w1.x_actual.set(format_err_value(x))
     _w1.y_actual.set(format_err_value(y))
-    _w1.theta_actual.set(format_err_value(theta))
+    _w1.theta_actual.set(format_err_value(theta, angle=True))
 
     _w1.x_dr.set(format_err_value(x_dr, x))
     _w1.y_dr.set(format_err_value(y_dr, y))
-    _w1.theta_dr.set(format_err_value(theta_dr, theta))
+    _w1.theta_dr.set(format_err_value(theta_dr, theta, angle=True))
 
     _w1.x_drm.set(format_err_value(x_drm, x))
     _w1.y_drm.set(format_err_value(y_drm, x))
-    _w1.theta_drm.set(format_err_value(theta_drm, x))
+    _w1.theta_drm.set(format_err_value(theta_drm, x, angle=True))
 
     _w1.v_final_left.set(format_err_value(v_left))
     _w1.v_final_right.set(format_err_value(v_right))
