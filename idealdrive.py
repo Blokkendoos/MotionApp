@@ -50,7 +50,7 @@ class IdealDrive():
     # Since the sine of the starting angle is used whenever we calculate the
     # true position of the robot at a given time, it will be calculated only
     # when the angle is set.
-    sinTheta0 = float()
+    sinTheta0 = float()  # radians
 
     # Since the cosine of the starting angle is used whenever we calculate the
     # true position of the robot at a given time, it will be calculated only

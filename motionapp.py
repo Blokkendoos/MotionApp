@@ -1,5 +1,5 @@
 from __future__ import print_function
-from math import floor, cos, sin
+from math import floor, cos, sin, degrees
 
 import motionapp_gui
 from pubsub import pub
@@ -100,7 +100,7 @@ class MotionApp():
         x, y, theta = value
         self.theWheels.setX0(x)
         self.theWheels.setY0(y)
-        self.theWheels.setTheta0(theta)
+        self.theWheels.setTheta0(degrees(theta))
         self.update_simulation()
 
     def velocity_changed(self, value):

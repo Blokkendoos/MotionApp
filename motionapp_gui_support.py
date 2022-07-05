@@ -29,7 +29,7 @@ def main(*args):
 def initial_values():
     _w1.x_pos_org.set(0.0)
     _w1.y_pos_org.set(0.0)
-    _w1.theta_org.set(90.0)
+    _w1.theta_org.set(90.0)  # degrees
     _w1.body_width.set(1.0)
     _w1.acceleration_left.set(0.0)
     _w1.acceleration_right.set(0.0)
