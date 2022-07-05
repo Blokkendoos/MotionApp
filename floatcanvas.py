@@ -10,13 +10,6 @@ class FloatCanvas(tk.Canvas):
     FloatCanvas implements a floating-point cartesian plane.
     @author <a href="mailto:MikeGauland@users.sourceforge.net">Michael Gauland</a>
     """
-    width = 400
-    height = 400
-
-    # All FloatCanvas objects are displayed using this font
-    labelFont = None  # setup in __init__
-    fontHeight = 22
-
     # The minimum and maximun x/y values in the plot area
     xMin = -1
     xMax = +1
@@ -55,8 +48,15 @@ class FloatCanvas(tk.Canvas):
     def __init__(self, master, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.master = master
+        master.update()  # mainloop is not started yet
+        self.width = master.winfo_width()
+        self.height = master.winfo_height()
         self.configure(background=self.defaultBackground)
-        self.labelFont = Font(family="Helvetica", weight="normal", size=8)
+        master.bind('<Configure>', self.resize)
+
+        # All FloatCanvas objects are displayed using this font
+        self.fontHeight = 12
+        self.labelFont = Font(family="Helvetica", weight="normal", size=self.fontHeight)
 
         pub.subscribe(self.set_limits, 'set_limits')
         pub.subscribe(self.draw_text, 'draw')
@@ -64,18 +64,24 @@ class FloatCanvas(tk.Canvas):
         pub.subscribe(self.draw_polygon_filled, 'draw_polygon_filled')
         pub.subscribe(self.draw_scales, 'draw_scales')
 
+    def resize(self, event):
+        self.width = event.width
+        self.height = event.height
+
     def set_limits(self, value):
         """
-        Set the floating-point boundariesof the plot area, rounded out
+        Set the floating-point boundaries of the plot area, rounded
         to one decimal place (e.g., 1.00 would be treated as 1.00,
         but 1.01 would become 1.1).
         """
+        self.delete('all')  # clear the canvas
+
         xMin, xMax, yMin, yMax = value
-        self.xMin = round(xMin)
-        self.xMax = round(xMax)
+        self.xMin = round(xMin, 1)
+        self.xMax = round(xMax, 1)
         self.xMax = max(self.xMax, self.xMin + 1)
-        self.yMin = round(yMin)
-        self.yMax = round(yMax)
+        self.yMin = round(yMin, 1)
+        self.yMax = round(yMax, 1)
         self.yMax = max(self.yMax, self.yMin + 1)
         self.setScaleFactor()
 
@@ -93,10 +99,7 @@ class FloatCanvas(tk.Canvas):
             (self.height - (self.bottomMargin + self.topMargin + 2)) / (self.yMax - self.yMin)
         xScale =\
             (self.width - (self.leftMargin + self.rightMargin + 2)) / (self.xMax - self.xMin)
-        if xScale < yScale:
-            self.scaleFactor = xScale
-        else:
-            self.scaleFactor = yScale
+        self.scaleFactor = min(xScale, yScale)
 
     def scalePoint(self, fp):
         """
@@ -188,7 +191,8 @@ class FloatCanvas(tk.Canvas):
         self.create_rectangle(self.leftMargin,
                               self.topMargin,
                               self.width - self.leftMargin - self.rightMargin - 1,
-                              self.height - self.topMargin - self.bottomMargin - 1)
+                              self.height - self.topMargin - self.bottomMargin - 1,
+                              outline=color)
         # Draw the labels for the min and max points to be plotted.
         self.drawYLabel(self.yMin)
         self.drawYLabel(self.yMax)
