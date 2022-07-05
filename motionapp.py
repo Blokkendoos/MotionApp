@@ -213,7 +213,8 @@ class MotionApp():
     def draw_func(self):
         pub.sendMessage('draw_scales')
 
-        shadow = 'grey'
+        # Find the min and max X and Y values, and set the limits
+        # of the FloatCanvas based on them.
         xMin = self.plotData[0].x
         xMax = xMin
         yMin = self.plotData[0].y
@@ -224,6 +225,8 @@ class MotionApp():
             yMin = min(self.plotData[i].y, yMin)
             yMax = max(self.plotData[i].y, yMax)
         bodyWidth = self.theWheels.getBodyWidth()
+
+        # Pad the limits with enough space for the robot
         xMin -= bodyWidth
         xMax += bodyWidth
         yMin -= bodyWidth
@@ -232,6 +235,9 @@ class MotionApp():
         pub.sendMessage('set_limits', value=limits)
 
         # TODO refactor vertices construction
+
+        # Draw the dead-reckoned wheel tracks
+        shadow = 'lightgrey'
         dPoly = [None] * 5
         dPoly[0] = self.theWheels.LeftWheelLoc(self.deadReckonPos[0])
         dPoly[1] = self.theWheels.RightWheelLoc(self.deadReckonPos[0])
@@ -243,10 +249,11 @@ class MotionApp():
             # theFloatCanvas.fillPolygon(dPoly, shadow)
             # theFloatCanvas.drawPolygon(dPoly, 'white')
             msg = (dPoly, shadow)
-            pub.sendMessage('draw_polygon', value=msg)
+            pub.sendMessage('draw_polygon_filled', value=msg)
             dPoly[0] = dPoly[3]
             dPoly[1] = dPoly[2]
 
+        # Draw the triangle at the end of the dead-reckoned track
         fpd = [None] * 3
         fpd[0] = self.theWheels.LeftWheelLoc(self.deadReckonPos[self.nSegment])
         fpd[1] = self.theWheels.NoseLoc(self.deadReckonPos[self.nSegment])
@@ -256,6 +263,7 @@ class MotionApp():
         msg = (fpd, shadow)
         pub.sendMessage('draw_polygon_filled', value=msg)
 
+        # Draw the triangles for the dead-reckoned positions
         for iSegment in range(1, self.nSegment + 1):
             fpd[0] = self.theWheels.LeftWheelLoc(self.deadReckonPos[iSegment])
             fpd[1] = self.theWheels.NoseLoc(self.deadReckonPos[iSegment])
@@ -273,6 +281,7 @@ class MotionApp():
             msg = (fpd, 'cyan')
             pub.sendMessage('draw_polygon', value=msg)
 
+        # Draw the blue, green and red lines tracing the true track
         # TODO cleanup
         # theFloatCanvas.drawPolyline(self.centerPoints, self.numSteps + 1)
         # theFloatCanvas.drawPolyline(self.leftPoints, self.numSteps + 1, 'green')
@@ -284,7 +293,8 @@ class MotionApp():
         msg = (self.rightPoints, 'red')
         pub.sendMessage('draw_polygon', value=msg)
 
-        for iSegment in range(1, self.nSegment + 1):
+        # Draw the triangles for the true positions
+        for iSegment in range(self.nSegment + 1):
             fpd[0] = self.theWheels.LeftWheelLoc(self.trueReckonPos[iSegment])
             fpd[1] = self.theWheels.NoseLoc(self.trueReckonPos[iSegment])
             fpd[2] = self.theWheels.RightWheelLoc(self.trueReckonPos[iSegment])
