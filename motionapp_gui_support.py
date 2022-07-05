@@ -77,8 +77,9 @@ def acceleration_changed(*args):
     value = (left, right)
     pub.sendMessage('acceleration_changed', value=value)
 
-def body_width_changed(value):
-    pub.sendMessage('width_changed', value=value)
+def body_width_changed(*args):
+    value = _w1.body_width.get()
+    pub.sendMessage('body_width_changed', value=value)
 
 def simulation_changed(value):
     duration = _w1.duration.get()
