@@ -41,8 +41,19 @@ def initial_values():
 
     pub.subscribe(set_computed_values, 'set_computed_values')
 
+    # trigger update after (Tkinter) main loop has started
+    wait_time = 50  # ms
+    root.after(wait_time, trigger_update)
+
 def quit_click(event=None):
     root.destroy()
+
+def trigger_update():
+    original_position_changed()
+    velocity_changed()
+    acceleration_changed()
+    body_width_changed()
+    simulation_changed()
 
 def radians_to_degrees(angle):
     # Convert from radians to degrees, and coerce to range (-180, 180]
@@ -81,7 +92,7 @@ def body_width_changed(*args):
     value = _w1.body_width.get()
     pub.sendMessage('body_width_changed', value=value)
 
-def simulation_changed(value):
+def simulation_changed(*args):
     duration = _w1.duration.get()
     interval = _w1.dead_reckoning_interval.get()
     value = (duration, interval)
