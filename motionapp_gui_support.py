@@ -32,7 +32,7 @@ def initial_values():
     _w1.theta_org.set(90.0)  # degrees
     _w1.body_width.set(1.0)
     _w1.acceleration_left.set(0.0)
-    _w1.acceleration_right.set(0.0)
+    _w1.acceleration_right.set(0.1)
     _w1.velocity_left.set(2.5)
     _w1.velocity_right.set(2.4)
     _w1.animation_duration.set(2)
