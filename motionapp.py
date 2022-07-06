@@ -276,7 +276,7 @@ class MotionApp():
             fpd[0] = self.theWheels.LeftWheelLoc(self.deadReckonPos[iSegment])
             fpd[1] = self.theWheels.NoseLoc(self.deadReckonPos[iSegment])
             fpd[2] = self.theWheels.RightWheelLoc(self.deadReckonPos[iSegment])
-            msg = (fpd, 'darkgray')
+            msg = (fpd, 'slategray')
             pub.sendMessage('draw_polygon', value=msg)
 
             fpd[0] =\
