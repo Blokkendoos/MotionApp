@@ -75,6 +75,7 @@ class FloatCanvas(tk.Canvas):
     def resize(self, event):
         self.width = event.width - self.master_offset
         self.height = event.height - self.master_offset
+        pub.sendMessage('update_simulation')
 
     def set_limits(self, value):
         """

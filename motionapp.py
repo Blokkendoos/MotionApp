@@ -90,6 +90,7 @@ class MotionApp():
         pub.subscribe(self.acceleration_changed, 'acceleration_changed')
         pub.subscribe(self.body_width_changed, 'body_width_changed')
         pub.subscribe(self.simulation_changed, 'simulation_changed')
+        pub.subscribe(self.update_simulation, 'update_simulation')
 
     def position_changed(self, value):
         x, y, theta = value
