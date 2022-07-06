@@ -35,9 +35,6 @@ class MotionApp():
     # The time between dead-reckoning calculations
     deadReckoningInterval = 0.01  # seconds
 
-    # This is the object used to simulate the robot's movements
-    theWheels = IdealDrive()
-
     # The number of steps used for displaying the true path and
     # the dead-reckoned path.   numSteps is computed and used
     # throughout the class as the number of steps for displaying the
@@ -55,36 +52,37 @@ class MotionApp():
     numSteps = 100
     maxDRSegments = 100
 
-    # This variable is used to store the  path of the center of the robot,
-    # which is then used to derive the position of the wheels.
-    plotData = [Position()] * (maxNumSteps + 1)
-
-    # Storage for the path of the center of the robot, which will
-    # be used for drawing the track.
-    centerPoints = [FPoint()] * (maxNumSteps + 1)
-
-    # Storage for the path of the left wheel of the robot, which will
-    # be used for drawing the track.
-    leftPoints = [FPoint()] * (maxNumSteps + 1)
-
-    # Storage for the path of the right wheel of the robot, which will
-    # be used for drawing the track.
-    rightPoints = [FPoint()] * (maxNumSteps + 1)
-
-    # Storage for the dead-reckoned path of the robot.
-    deadReckonPos = [Position()] * (maxNumSteps + 1)
-
-    # Storage for the dead-reckoned path of the robot using the mean of theta.
-    deadReckonMeanPos = [Position()] * (maxNumSteps + 1)
-
-    # Storage for the true path of the robot.
-    trueReckonPos = [Position()] * (maxNumSteps + 1)
-
-    # Temporary variable.
-    nSegment = int()
-
     def __init__(self):
         """ calculate and display the position data. """
+        # This is the object used to simulate the robot's movements
+        self.theWheels = IdealDrive()
+        # This variable is used to store the  path of the center of the robot,
+        # which is then used to derive the position of the wheels.
+        self.plotData = [Position()] * (self.maxNumSteps + 1)
+
+        # The path of the center of the robot, which will
+        # be used for drawing the track.
+        self.centerPoints = [FPoint()] * (self.maxNumSteps + 1)
+
+        # The path of the left wheel of the robot, which will
+        # be used for drawing the track.
+        self.leftPoints = [FPoint()] * (self.maxNumSteps + 1)
+
+        # The path of the right wheel of the robot, which will
+        # be used for drawing the track.
+        self.rightPoints = [FPoint()] * (self.maxNumSteps + 1)
+
+        # The dead-reckoned path of the robot.
+        self.deadReckonPos = [Position()] * (self.maxNumSteps + 1)
+
+        # The dead-reckoned path of the robot using the mean of theta.
+        self.deadReckonMeanPos = [Position()] * (self.maxNumSteps + 1)
+
+        # The true path of the robot.
+        self.trueReckonPos = [Position()] * (self.maxNumSteps + 1)
+
+        self.nSegment = int()
+
         self.compute_position_data()
 
         pub.subscribe(self.position_changed, 'position_changed')
