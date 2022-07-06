@@ -238,7 +238,7 @@ class MotionApp():
 
         # Draw the dead-reckoned wheel tracks
         shadow = 'lightgrey'
-        dPoly = [None] * 5
+        dPoly = [FPoint()] * 5
         dPoly[0] = self.theWheels.LeftWheelLoc(self.deadReckonPos[0])
         dPoly[1] = self.theWheels.RightWheelLoc(self.deadReckonPos[0])
         for iSegment in range(1, self.nSegment + 1):
@@ -254,7 +254,7 @@ class MotionApp():
             dPoly[1] = dPoly[2]
 
         # Draw the triangle at the end of the dead-reckoned track
-        fpd = [None] * 3
+        fpd = [FPoint] * 3
         fpd[0] = self.theWheels.LeftWheelLoc(self.deadReckonPos[self.nSegment])
         fpd[1] = self.theWheels.NoseLoc(self.deadReckonPos[self.nSegment])
         fpd[2] = self.theWheels.RightWheelLoc(self.deadReckonPos[self.nSegment])
@@ -286,12 +286,12 @@ class MotionApp():
         # theFloatCanvas.drawPolyline(self.centerPoints, self.numSteps + 1)
         # theFloatCanvas.drawPolyline(self.leftPoints, self.numSteps + 1, 'green')
         # theFloatCanvas.drawPolyline(self.rightPoints, self.numSteps + 1, 'red')
-        msg = (self.centerPoints, 'blue')
-        pub.sendMessage('draw_polygon', value=msg)
-        msg = (self.leftPoints, 'green')
-        pub.sendMessage('draw_polygon', value=msg)
-        msg = (self.rightPoints, 'red')
-        pub.sendMessage('draw_polygon', value=msg)
+        msg = (self.centerPoints, self.numSteps + 1, 'blue')
+        pub.sendMessage('draw_polyline', value=msg)
+        msg = (self.leftPoints, self.numSteps + 1 , 'green')
+        pub.sendMessage('draw_polyline', value=msg)
+        msg = (self.rightPoints, self.numSteps + 1, 'red')
+        pub.sendMessage('draw_polyline', value=msg)
 
         # Draw the triangles for the true positions
         for iSegment in range(self.nSegment + 1):

@@ -64,6 +64,7 @@ class FloatCanvas(tk.Canvas):
 
         pub.subscribe(self.set_limits, 'set_limits')
         pub.subscribe(self.draw_text, 'draw')
+        pub.subscribe(self.draw_polyline, 'draw_polyline')
         pub.subscribe(self.draw_polygon, 'draw_polygon')
         pub.subscribe(self.draw_polygon_filled, 'draw_polygon_filled')
         pub.subscribe(self.draw_scales, 'draw_scales')
@@ -78,8 +79,6 @@ class FloatCanvas(tk.Canvas):
         to one decimal place (e.g., 1.00 would be treated as 1.00,
         but 1.01 would become 1.1).
         """
-        self.delete('all')  # clear the canvas
-
         xMin, xMax, yMin, yMax = value
         self.xMin = round(xMin, 1)
         self.xMax = round(xMax, 1)
@@ -127,6 +126,26 @@ class FloatCanvas(tk.Canvas):
             pt_scaled = self.scalePoint(pt)
             vertices_scaled.append((pt_scaled.x, pt_scaled.y))
         self.create_polygon(vertices_scaled, fill=fill, outline=outline)
+
+    def _draw_polyline(self, points, numPoints, fill):
+        if fill is None:
+            fill = self.defaultForeground
+        vertices_scaled = []
+        for i in range(numPoints):
+            pt_scaled = self.scalePoint(points[i])
+            vertices_scaled.append(pt_scaled)
+        for i in range(1, len(vertices_scaled)):
+            x0 = vertices_scaled[i - 1].x
+            y0 = vertices_scaled[i - 1].y
+            x1 = vertices_scaled[i].x
+            y1 = vertices_scaled[i].y
+            self.create_line(x0, y0, x1, y1, fill=fill)
+
+    def draw_polyline(self, value):
+        points, numPoints, color = value
+        if color is None:
+            color = self.defaultForeground
+        self._draw_polyline(points, numPoints, fill=color)
 
     def draw_polygon(self, value):
         points, color = value
