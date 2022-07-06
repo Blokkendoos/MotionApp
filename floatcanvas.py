@@ -8,19 +8,9 @@ from point import Point, FPoint
 class FloatCanvas(tk.Canvas):
     """
     FloatCanvas implements a floating-point cartesian plane.
-    @author <a href="mailto:MikeGauland@users.sourceforge.net">Michael Gauland</a>
+    @author <a href="mailto:MikeGauland@users.sourceforge.net">
+    Michael Gauland</a>
     """
-    # The minimum and maximun x/y values in the plot area
-    xMin = -1
-    xMax = +1
-    yMin = -1
-    yMax = +1
-
-    # The scaling to apply to convert from floating-point coordinates
-    # to screen pixels.  It will be recalculated when the window is
-    # resized, or any of xMin, xMax, yMin, or yMax change.
-    scaleFactor = 1
-
     # Space between the top of the plot area and the top of the
     # graphics context.
     topMargin = 1
@@ -60,7 +50,20 @@ class FloatCanvas(tk.Canvas):
 
         # All FloatCanvas objects are displayed using this font
         self.fontHeight = 12
-        self.labelFont = Font(family="Helvetica", weight="normal", size=self.fontHeight)
+        self.labelFont = Font(family="Helvetica",
+                              weight="normal",
+                              size=self.fontHeight)
+
+        # The minimum and maximun x/y values in the plot area
+        self.xMin = -1
+        self.xMax = +1
+        self.yMin = -1
+        self.yMax = +1
+
+        # The scaling to apply to convert from floating-point coordinates
+        # to screen pixels.  It will be recalculated when the window is
+        # resized, or any of xMin, xMax, yMin, or yMax change.
+        self.scaleFactor = 1
 
         pub.subscribe(self.set_limits, 'set_limits')
         pub.subscribe(self.draw_text, 'draw')
@@ -99,10 +102,12 @@ class FloatCanvas(tk.Canvas):
         # is determined by the top and bottom (or left and right) margins,
         # plus the plot area border width.
         border_width = 2
-        yScale =\
-            (self.height - (self.bottomMargin + self.topMargin + border_width)) / (self.yMax - self.yMin)
-        xScale =\
-            (self.width - (self.leftMargin + self.rightMargin + border_width)) / (self.xMax - self.xMin)
+        yScale = self.height -\
+            (self.bottomMargin + self.topMargin + border_width)
+        yScale /= (self.yMax - self.yMin)
+        xScale = self.width -\
+            (self.leftMargin + self.rightMargin + border_width)
+        xScale /= (self.xMax - self.xMin)
         self.scaleFactor = min(xScale, yScale)
 
     def scalePoint(self, fp):
@@ -110,8 +115,10 @@ class FloatCanvas(tk.Canvas):
         Translate and scale the point, to convert it to a pixel location
         in the graphics context.
         """
-        return Point((round((fp.x - self.xMin) * self.scaleFactor + self.leftMargin)),
-                     (round(self.height - self.bottomMargin - (fp.y - self.yMin) * self.scaleFactor)))
+        x = (round((fp.x - self.xMin) * self.scaleFactor + self.leftMargin))
+        y = (round(self.height - self.bottomMargin -
+                   (fp.y - self.yMin) * self.scaleFactor))
+        return Point(x, y)
 
     def draw_text(self, value):
         # TEST
@@ -160,7 +167,9 @@ class FloatCanvas(tk.Canvas):
         self._draw_polygon(points, fill=color, outline=color)
 
     def drawYLabel(self, value):
-        """ Draw the a label along the Y axis, marking the floating-point value. """
+        """
+        Draw the a label along the Y axis, marking the floating-point value.
+        """
         # Get the pixel coordinate of the point on the Y axis
         ticLoc = self.scalePoint(FPoint(0, value)).y
         # Generate a label string from the floating point value.
@@ -171,18 +180,22 @@ class FloatCanvas(tk.Canvas):
         # If the label is at or near the top of the window, force
         # it down so that it will be visible.
         labelLimit = self.fontHeight + 1
-        labelLoc = max(labelLimit, labelLoc)
+        labelLoc = max(labelLoc, labelLimit)
         # Draw the tic mark, and the label string.
         self.create_line(self.leftMargin - self.ticLength,
                          ticLoc,
                          self.leftMargin,
                          ticLoc)
-        self.create_text(self.leftMargin - self.labelFont.measure(label_str) - self.ticLength - 2,
-                         labelLoc,
-                         text=label_str)
+        # 2 pixels between tic & string
+        x = self.leftMargin -\
+            self.labelFont.measure(label_str) - self.ticLength - 2
+        y = labelLoc
+        self.create_text(x, y, text=label_str)
 
     def drawXLabel(self, value):
-        """ Draw the a label along the X axis, marking the floating-point value. """
+        """
+        Draw the a label along the X axis, marking the floating-point value.
+        """
         # Get the pixel coordinate of the point on the X axis
         ticLoc = self.scalePoint(FPoint(value, 0)).x
         # Generate a label string from the floating point value.
@@ -192,7 +205,8 @@ class FloatCanvas(tk.Canvas):
         labelLoc = ticLoc - self.labelFont.measure(label_str) / 2
         # If the label is at or near the right of the window, force
         # it left so that it will be visible.
-        labelLimit = self.width - self.rightMargin - self.labelFont.measure(label_str) - 3
+        labelLimit = self.width -\
+            self.rightMargin - self.labelFont.measure(label_str) - 3
         labelLoc = min(labelLimit, labelLoc)
         # Draw the tic mark, and the label string.
         self.create_line(ticLoc,
@@ -200,15 +214,14 @@ class FloatCanvas(tk.Canvas):
                          ticLoc,
                          self.height - self.bottomMargin + self.ticLength)
         # 2 pixels btw tic & string
-        self.create_text(labelLoc,
-                         self.height - self.bottomMargin + self.fontHeight + self.ticLength + 2,
-                         text=label_str)
+        x = labelLoc
+        y = self.height -\
+            self.bottomMargin + self.fontHeight + self.ticLength + 2,
+        self.create_text(x, y, text=label_str)
 
     def draw_scales(self):
         """ Draw the X and Y axes, and label them. """
         self.delete('all')  # clear the canvas
-
-        # TODO cleanup, no rect needed (as the master frame already has a border)
 
         # Along with the axes, we draw a line across the top and right
         # edges of the plot area.  It's not really necessary, but it

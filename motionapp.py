@@ -15,7 +15,8 @@ class MotionApp():
     that occur with "dead-reckoning" navigation.
 
     Original (Java) version by
-    @author <a href="mailto:MikeGauland@users.sourceforge.net">Michael Gauland</a>
+    @author <a href="mailto:MikeGauland@users.sourceforge.net">
+    Michael Gauland</a>
 
     Model for acceleration added by
     @author Jing YE, a student at the University of Melbourne
@@ -142,7 +143,8 @@ class MotionApp():
 
     def compute_position_data(self):
         # Compute the true position
-        self.numSteps = self.theWheels.getSimpsonIntervals_0(self.simulationTime)
+        self.numSteps =\
+            self.theWheels.getSimpsonIntervals_0(self.simulationTime)
         self.numSteps = max(self.numSteps, self.minNumSteps)  # floor
         self.numSteps = min(self.numSteps, self.maxNumSteps)  # ceiling
         stepSize = self.simulationTime / self.numSteps
@@ -154,7 +156,8 @@ class MotionApp():
             self.rightPoints[i] = self.theWheels.RightWheelLoc(pos)
 
         # Compute the dead-reckoned position
-        self.nSegment = int(floor(self.simulationTime / self.deadReckoningInterval))
+        self.nSegment =\
+            int(floor(self.simulationTime / self.deadReckoningInterval))
         deltaT = self.deadReckoningInterval
         if self.simulationTime - self.nSegment * deltaT > 0.01:
             # The simulation time does not come out to an even
@@ -198,15 +201,20 @@ class MotionApp():
             sRight = deltaT * (vRight0 + vRight1) / 2.0
             sMean = (sRight + sLeft) / 2
             wTrack = self.theWheels.getBodyWidth()
-            theta = self.deadReckonPos[iSegment - 1].theta + (sRight - sLeft) / wTrack
+            theta = self.deadReckonPos[iSegment - 1].theta +\
+                (sRight - sLeft) / wTrack
             theta_mean = (theta + self.deadReckonPos[iSegment - 1].theta) / 2
             self.deadReckonPos[iSegment] =\
-                Position(self.deadReckonPos[iSegment - 1].x + sMean * cos(theta),
-                         self.deadReckonPos[iSegment - 1].y + sMean * sin(theta),
+                Position(self.deadReckonPos[iSegment - 1].x +
+                         sMean * cos(theta),
+                         self.deadReckonPos[iSegment - 1].y +
+                         sMean * sin(theta),
                          theta)
             self.deadReckonMeanPos[iSegment] =\
-                Position(self.deadReckonMeanPos[iSegment - 1].x + sMean * cos(theta_mean),
-                         self.deadReckonMeanPos[iSegment - 1].y + sMean * sin(theta_mean),
+                Position(self.deadReckonMeanPos[iSegment - 1].x +
+                         sMean * cos(theta_mean),
+                         self.deadReckonMeanPos[iSegment - 1].y +
+                         sMean * sin(theta_mean),
                          theta)
             self.trueReckonPos[iSegment] = self.theWheels.positionAt(trueTime)
 
@@ -242,12 +250,11 @@ class MotionApp():
         dPoly[0] = self.theWheels.LeftWheelLoc(self.deadReckonPos[0])
         dPoly[1] = self.theWheels.RightWheelLoc(self.deadReckonPos[0])
         for iSegment in range(1, self.nSegment + 1):
-            dPoly[2] = self.theWheels.RightWheelLoc(self.deadReckonPos[iSegment])
-            dPoly[3] = self.theWheels.LeftWheelLoc(self.deadReckonPos[iSegment])
+            dPoly[2] =\
+                self.theWheels.RightWheelLoc(self.deadReckonPos[iSegment])
+            dPoly[3] =\
+                self.theWheels.LeftWheelLoc(self.deadReckonPos[iSegment])
             dPoly[4] = dPoly[0]
-            # TODO cleanup
-            # theFloatCanvas.fillPolygon(dPoly, shadow)
-            # theFloatCanvas.drawPolygon(dPoly, 'white')
             msg = (dPoly, shadow)
             pub.sendMessage('draw_polygon_filled', value=msg)
             dPoly[0] = dPoly[3]
@@ -255,11 +262,12 @@ class MotionApp():
 
         # Draw the triangle at the end of the dead-reckoned track
         fpd = [FPoint] * 3
-        fpd[0] = self.theWheels.LeftWheelLoc(self.deadReckonPos[self.nSegment])
-        fpd[1] = self.theWheels.NoseLoc(self.deadReckonPos[self.nSegment])
-        fpd[2] = self.theWheels.RightWheelLoc(self.deadReckonPos[self.nSegment])
-        # TODO cleanup
-        # theFloatCanvas.fillPolygon(fpd, shadow)
+        fpd[0] =\
+            self.theWheels.LeftWheelLoc(self.deadReckonPos[self.nSegment])
+        fpd[1] =\
+            self.theWheels.NoseLoc(self.deadReckonPos[self.nSegment])
+        fpd[2] =\
+            self.theWheels.RightWheelLoc(self.deadReckonPos[self.nSegment])
         msg = (fpd, shadow)
         pub.sendMessage('draw_polygon_filled', value=msg)
 
@@ -268,27 +276,22 @@ class MotionApp():
             fpd[0] = self.theWheels.LeftWheelLoc(self.deadReckonPos[iSegment])
             fpd[1] = self.theWheels.NoseLoc(self.deadReckonPos[iSegment])
             fpd[2] = self.theWheels.RightWheelLoc(self.deadReckonPos[iSegment])
-            # TODO cleanup
-            # theFloatCanvas.drawPolygon(fpd, 'darkgray')
             msg = (fpd, 'darkgray')
             pub.sendMessage('draw_polygon', value=msg)
 
-            fpd[0] = self.theWheels.LeftWheelLoc(self.deadReckonMeanPos[iSegment])
-            fpd[1] = self.theWheels.NoseLoc(self.deadReckonMeanPos[iSegment])
-            fpd[2] = self.theWheels.RightWheelLoc(self.deadReckonMeanPos[iSegment])
-            # TODO cleanup
-            # theFloatCanvas.drawPolygon(fpd, 'cyan')
+            fpd[0] =\
+                self.theWheels.LeftWheelLoc(self.deadReckonMeanPos[iSegment])
+            fpd[1] =\
+                self.theWheels.NoseLoc(self.deadReckonMeanPos[iSegment])
+            fpd[2] =\
+                self.theWheels.RightWheelLoc(self.deadReckonMeanPos[iSegment])
             msg = (fpd, 'cyan')
             pub.sendMessage('draw_polygon', value=msg)
 
         # Draw the blue, green and red lines tracing the true track
-        # TODO cleanup
-        # theFloatCanvas.drawPolyline(self.centerPoints, self.numSteps + 1)
-        # theFloatCanvas.drawPolyline(self.leftPoints, self.numSteps + 1, 'green')
-        # theFloatCanvas.drawPolyline(self.rightPoints, self.numSteps + 1, 'red')
         msg = (self.centerPoints, self.numSteps + 1, 'blue')
         pub.sendMessage('draw_polyline', value=msg)
-        msg = (self.leftPoints, self.numSteps + 1 , 'green')
+        msg = (self.leftPoints, self.numSteps + 1, 'green')
         pub.sendMessage('draw_polyline', value=msg)
         msg = (self.rightPoints, self.numSteps + 1, 'red')
         pub.sendMessage('draw_polyline', value=msg)
@@ -298,8 +301,6 @@ class MotionApp():
             fpd[0] = self.theWheels.LeftWheelLoc(self.trueReckonPos[iSegment])
             fpd[1] = self.theWheels.NoseLoc(self.trueReckonPos[iSegment])
             fpd[2] = self.theWheels.RightWheelLoc(self.trueReckonPos[iSegment])
-            # TODO cleanup
-            # theFloatCanvas.drawPolygon(fpd, 'blue')
             msg = (fpd, 'blue')
             pub.sendMessage('draw_polygon', value=msg)
 

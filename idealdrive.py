@@ -4,69 +4,52 @@ from point import FPoint
 from position import Position
 import math
 
-"""
-IdealDrive simulates a differential-drive robot, with no slippage,
-and other simplifications.
-
-All linear measurements (i.e., body width, distance traveled, etc.) are
-assumed to be in the same units (e.g., meters), as are all time settings
-in the simulation (e.g., duration).  Velocity is also expressed in these
-same units (i.e., if you assume the velocity is in meters/second, then the
-duration of the simulation is expressed in seconds.).
-
-@author <a href="mailto:MikeGauland@users.sourceforge.net">
-Michael Gauland</a>
-@version 2.
-
-Addition of Simpson's Rule implementation to treat acceleration,
-contributed by Jing YE, Univeristy of Melbourne, Jan 2001
-"""
-
 
 class IdealDrive():
-    #  the starting position, for simulations.
-    initialPos = Position()
+    """
+    IdealDrive simulates a differential-drive robot, with no slippage,
+    and other simplifications.
 
-    # The width of the robot's body--i.e., the distance
-    # between the drive wheels.
-    bodyWidth = 0.7
+    All linear measurements (i.e., body width, distance traveled, etc.) are
+    assumed to be in the same units (e.g., meters), as are all time settings
+    in the simulation (e.g., duration).  Velocity is also expressed in these
+    same units (i.e., if you assume the velocity is in meters/second, then the
+    duration of the simulation is expressed in seconds.).
 
-    # The velocity of the left drive wheel.
-    # <P>See the note at the top of this file for information about
-    # measurement units.</P>
-    velocityLeft = 0.0
+    @author <a href="mailto:MikeGauland@users.sourceforge.net">
+    Michael Gauland</a>
+    @version 2.
 
-    # The velocity of the right drive wheel.
-    # <P>See the note at the top of this file for information about
-    # measurement units.</P>
-    velocityRight = 0.0
-
-    # The acceleration of the left drive wheel
-    accelerationLeft = 0.0
-
-    # The acceleration of the right drive wheel
-    accelerationRight = 0.1
-
-    # Since the sine of the starting angle is used whenever we calculate the
-    # true position of the robot at a given time, it will be calculated only
-    # when the angle is set.
-    sinTheta0 = float()  # radians
-
-    # Since the cosine of the starting angle is used whenever we calculate the
-    # true position of the robot at a given time, it will be calculated only
-    # when the angle is set.
-    cosTheta0 = float()
-
-    # A variable that caches the time.
-    cachedTime = 0
-
+    Addition of Simpson's Rule implementation to treat acceleration,
+    contributed by Jing YE, Univeristy of Melbourne, Jan 2001
+    """
     # The maximum-error criterion used for selecting intervals
     maxAllowableError = 0.01
 
     def __init__(self):
-        pass
+        # The starting position, for simulations.
+        self.initialPos = Position()
 
-    @classmethod
+        # The width of the robot's body -- i.e., the distance
+        # between the drive wheels.
+        self.bodyWidth = 0.7
+
+        # The velocity of the drive wheels.
+        # <P>See the note at the top of this file for information about
+        # measurement units.</P>
+        self.velocityLeft = 0.0
+        self.velocityRight = 0.0
+
+        # The acceleration of the drive wheels
+        self.accelerationLeft = 0.0
+        self.accelerationRight = 0.1
+
+        # Since the sine and cosine of the starting angle is used whenever we
+        # calculate the true position of the robot at a given time, it will be
+        # calculated only when the angle is set.
+        self.sinTheta0 = float()
+        self.cosTheta0 = float()
+
     def main(cls, args):
         ix = IdealDrive()
         ix.setVelocityRight(2.5)
@@ -83,7 +66,8 @@ class IdealDrive():
         To facilitate debugging, this function generates a string representing
         the settings of the robot.
         """
-        return f"Start at: ({self.initialPos.x}, {self.initialPos.y}); facing " +\
+        return f"Start at: ({self.initialPos.x}," +\
+               f"{self.initialPos.y}); facing " +\
                f"{math.degrees(self.initialPos.theta)}\u00b0 \n" +\
                f"Body: {self.bodyWidth} Vels: " +\
                f"{self.velocityLeft}, {self.velocityRight}"
@@ -163,8 +147,10 @@ class IdealDrive():
         is concerned about the total of the absolute delta thetas
         over both parts of the turn.
         """
-        C = (self.accelerationRight - self.accelerationLeft) / (2 * self.bodyWidth)
-        D = (self.velocityRight - self.velocityLeft) / self.bodyWidth
+        C = (self.accelerationRight -
+             self.accelerationLeft) / (2 * self.bodyWidth)
+        D = (self.velocityRight -
+             self.velocityLeft) / self.bodyWidth
         ft = C * t * t + D * t
         if abs(C) < 1.0e-6:
             #  The function theta(t) is essentially a straight line,
@@ -172,8 +158,8 @@ class IdealDrive():
             #  increasing or decreasing, we simply return |f(t)-f(0)|
             return abs(ft)
 
-        x = D / (2 * C)
         #  There is an inflection-point/extrema at t=x
+        x = D / (2 * C)
         if x < 0 or x > t:
             #  The inflection point is outside the range [0, t]
             #  so again, we ignore it
@@ -201,7 +187,8 @@ class IdealDrive():
         For our position functions x(t)=(Ax+B)cos(Cx^2 +Dx +E), and
         y(t)=(Ax+B)sin(Cx^2+Dx+E), the 4th derivatives get a little involved,
         but fortunately we can take advantage of certain simplifications.
-        The 4th derivative of of the function f(x) = (Ax+B)cos(Cx^2 + Dx + E) is:
+        The 4th derivative of of the function f(x) = (Ax+B)cos(Cx^2 + Dx + E)
+        is:
 
             f4(x) = 4Asin(Cx^2 + Dx + E)(2Cx + D)^3
                   - 24Acos(Cx^2 + Dx + E) (2Cx+ D)C
@@ -217,8 +204,8 @@ class IdealDrive():
         time sin(x) may also be negative, giving us a positive
         value for (Ax+B)*sin(x).   Since we are interested in the
         absolute, worst case, maximum value of the 4th derivative over
-        the interval, we take assume that each term makes a positive contribution
-        the f4(x) but taking absolute values.
+        the interval, we assume that each term makes a positive
+        contribution to the f4(x) but taking absolute values.
 
              M =  4|A(2Cx + D)^3| + 24|A(2Cx+ D)C|
                +   |(Ax+b)(2Cx + D) ^4|  + 12|(Ax+B)(2Cx+D)^2 * C|
@@ -233,26 +220,37 @@ class IdealDrive():
         term2P3 = term2P2 * term2
         term2P4 = term2P2 * term2P2
         xP5 = math.pow(x, 5)
-        Mcos = abs(4 * A * term2P3) + abs(24 * A * C * term2) + abs(term1 * term2P4) + abs(12 * term1 * term2P2 * C) + abs(12 * term1 * C * C)
-        Msin = abs(4 * term2P3) + abs(24 * A * term2 * C) + abs(term1 * term2P4) + abs(12 * term1 * term2P2 * C) + abs(12 * term1 * C * C)
+
+        Mcos = (abs(4 * A * term2P3) +
+                abs(24 * A * C * term2) +
+                abs(term1 * term2P4) +
+                abs(12 * term1 * term2P2 * C) +
+                abs(12 * term1 * C * C))
+
+        Msin = (abs(4 * term2P3) +
+                abs(24 * A * term2 * C) +
+                abs(term1 * term2P4) +
+                abs(12 * term1 * term2P2 * C) +
+                abs(12 * term1 * C * C))
+
         ncos = abs(Mcos * xP5 / (self.maxAllowableError * 180))
         nsin = abs(Msin * xP5 / (self.maxAllowableError * 180))
-        n = ncos
-        if nsin > ncos:
-            n = nsin
+
+        n = max(nsin, ncos)
         n = math.pow(n, 0.25)
-        N = (math.ceil(n))
+        N = int(math.ceil(n))
         if (N % 2) == 1:
             N += 1
-        if N < 4:
-            N = 4
+        N = max(N, 4)
         return N
 
     def getSimpsonIntervals_0(self, x):
         A = (self.accelerationLeft + self.accelerationRight) / 2
         B = (self.velocityLeft + self.velocityRight) / 2
-        C = (self.accelerationRight - self.accelerationLeft) / (2 * self.bodyWidth)
-        D = (self.velocityRight - self.velocityLeft) / self.bodyWidth
+        C = (self.accelerationRight -
+             self.accelerationLeft) / (2 * self.bodyWidth)
+        D = (self.velocityRight -
+             self.velocityLeft) / self.bodyWidth
         return self.getSimpsonIntervals(A, B, C, D, x)
 
     def positionAt(self, t):
@@ -271,19 +269,18 @@ class IdealDrive():
         So we need a numerical method to integrate them.
         In this case, we use Simpon's Rule from elementary calculus.
         """
-        if t == 0:
-            self.cachedTime = 0
-
         A = (self.accelerationLeft + self.accelerationRight) / 2
         B = (self.velocityLeft + self.velocityRight) / 2
-        C = (self.accelerationRight - self.accelerationLeft) / (2 * self.bodyWidth)
-        D = (self.velocityRight - self.velocityLeft) / self.bodyWidth
+        C = (self.accelerationRight -
+             self.accelerationLeft) / (2 * self.bodyWidth)
+        D = (self.velocityRight -
+             self.velocityLeft) / self.bodyWidth
 
         theta0 = self.initialPos.theta
         theta = C * t * t + D * t + theta0
+
         start = 0
         end = t
-
         finalX = 0
         finalY = 0
 
@@ -292,18 +289,24 @@ class IdealDrive():
         deltaT = t / simpsonIntervals
 
         # f(x0)
-        finalX += (A * start + B) * (math.cos(C * start * start + D * start + theta0))
-        finalY += (A * start + B) * (math.sin(C * start * start + D * start + theta0))
+        finalX += (A * start + B) *\
+            (math.cos(C * start * start + D * start + theta0))
+        finalY += (A * start + B) *\
+            (math.sin(C * start * start + D * start + theta0))
 
         # 4*f(x1) + 2*f(x2) + ... + 4*f(xn-1)
         for i in range(1, simpsonIntervals):
             start += deltaT
             if (i % 2) == 1:
-                finalX += 4 * (A * start + B) * (math.cos(C * start * start + D * start + theta0))
-                finalY += 4 * (A * start + B) * (math.sin(C * start * start + D * start + theta0))
+                finalX += 4 * (A * start + B) *\
+                    (math.cos(C * start * start + D * start + theta0))
+                finalY += 4 * (A * start + B) *\
+                    (math.sin(C * start * start + D * start + theta0))
             else:
-                finalX += 2 * (A * start + B) * (math.cos(C * start * start + D * start + theta0))
-                finalY += 2 * (A * start + B) * (math.sin(C * start * start + D * start + theta0))
+                finalX += 2 * (A * start + B) *\
+                    (math.cos(C * start * start + D * start + theta0))
+                finalY += 2 * (A * start + B) *\
+                    (math.sin(C * start * start + D * start + theta0))
         # f(xn)
         finalX += (A * end + B) * (math.cos(C * end * end + D * end + theta0))
         finalY += (A * end + B) * (math.sin(C * end * end + D * end + theta0))
@@ -311,7 +314,6 @@ class IdealDrive():
         finalY = deltaT * finalY / 3.0
         # End of simpson's rule...
 
-        self.cachedTime = t
         location = FPoint()
         location.x = finalX
         location.y = finalY
@@ -329,9 +331,12 @@ class IdealDrive():
         # Now, calculate the final angle, and use that to estimate
         # the final position.  See Gary Lucas' paper for derivations
         # of the equations.
-        theta = self.initialPos.theta + (distanceRight - distanceLeft) / self.bodyWidth
-        x = self.initialPos.x + (distanceRight + distanceLeft) / 2 * math.cos(theta)
-        y = self.initialPos.y + (distanceRight + distanceLeft) / 2 * math.sin(theta)
+        theta = self.initialPos.theta +\
+            (distanceRight - distanceLeft) / self.bodyWidth
+        x = self.initialPos.x +\
+            (distanceRight + distanceLeft) / 2 * math.cos(theta)
+        y = self.initialPos.y +\
+            (distanceRight + distanceLeft) / 2 * math.sin(theta)
         return Position(x, y, theta)
 
     def LeftWheelLoc(self, p):
