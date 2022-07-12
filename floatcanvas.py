@@ -49,9 +49,9 @@ class FloatCanvas(tk.Canvas):
         master.bind('<Configure>', self.resize)
 
         # All FloatCanvas objects are displayed using this font
-        self.fontHeight = 12
-        self.labelFont = Font(family="Helvetica",
-                              weight="normal",
+        self.fontHeight = 11
+        self.labelFont = Font(family="Times",
+                              weight=tk.font.NORMAL,
                               size=self.fontHeight)
 
         # The minimum and maximun x/y values in the plot area
@@ -126,6 +126,7 @@ class FloatCanvas(tk.Canvas):
         text = value
         self.create_text(50,  # self.width / 2,
                          50,  # self.height / 2,
+                         font=self.labelFont,
                          text=text)
 
     def _draw_polygon(self, points, fill, outline):
@@ -191,7 +192,7 @@ class FloatCanvas(tk.Canvas):
         x = self.leftMargin -\
             self.labelFont.measure(label_str) - self.ticLength - 2
         y = labelLoc
-        self.create_text(x, y, text=label_str)
+        self.create_text(x, y, font=self.labelFont, text=label_str)
 
     def drawXLabel(self, value):
         """
@@ -203,7 +204,7 @@ class FloatCanvas(tk.Canvas):
         label_str = f"{value:.1f}"
         # The label starts to the left of the tic mark, so it will be
         # centered on the tic.
-        labelLoc = ticLoc - self.labelFont.measure(label_str) / 2
+        labelLoc = ticLoc  # - self.labelFont.measure(label_str) / 2
         # If the label is at or near the right of the window, force
         # it left so that it will be visible.
         labelLimit = self.width -\
@@ -218,7 +219,7 @@ class FloatCanvas(tk.Canvas):
         x = labelLoc
         y = self.height -\
             self.bottomMargin + self.fontHeight + self.ticLength + 2,
-        self.create_text(x, y, text=label_str)
+        self.create_text(x, y, font=self.labelFont, text=label_str)
 
     def draw_scales(self):
         """ Draw the X and Y axes, and label them. """
